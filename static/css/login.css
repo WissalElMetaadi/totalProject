@@ -1,0 +1,145 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+    width: 100%;
+}
+
+.left {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: url('/static/images/Calque1.png');      
+    background-size: 100% 100%;
+    color: white;
+}
+
+.left .content h1 {
+    font-size: 2.5em;
+    margin: 0;
+}
+
+.left .content p {
+    font-size: 1.5em;
+    text-align: center;
+}
+
+.right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.logo {
+    width: 200px;
+    margin-bottom: 20px;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-box h2 {
+    margin: 20px 0;
+    color: #007BFF;
+}
+
+.login-box p {
+    margin: 20px 0;
+    color: #333;
+}
+
+.textbox {
+    position: relative;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: white;
+}
+
+.textbox i {
+    margin-right: 10px;
+    color: #007BFF;
+}
+
+.textbox input {
+    width: 100%;
+    padding: 10px;
+    font-size: 1em;
+    border: none;
+    outline: none;
+    background-color: transparent;
+}
+
+.form-group {
+    display: flex;
+    justify-content: center;
+}
+
+/* Assurez-vous d'ajouter ces styles à votre fichier CSS existant */
+
+/* Centrer le bouton dans le conteneur de formulaire */
+.form-group {
+    display: flex;
+    justify-content: center;
+}
+
+/* Styles pour le bouton de soumission */
+.submit-btn, .btn {
+    width: 70%; /* Ajustez la largeur si nécessaire */
+    /* Limite la largeur maximale du bouton */
+    padding: 10px;
+    background-color: #007BFF;
+    border: none;
+    color: white;
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.submit-btn:hover, .btn:hover {
+    background-color: #0056b3;
+}
+
+
+/* Styles pour le lien d'inscription */
+.register-link {
+    margin-top: 20px;
+    font-size: 1em;
+    color: #007BFF;
+}
+
+.register-link button {
+    background: none;
+    border: none;
+    color: #007BFF;
+    cursor: pointer;
+    font-size: 1em;
+    text-decoration: underline;
+}
+
+/* Styles pour le lien du mot de passe oublié */
+.forgot-password {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #007BFF;
+    text-decoration: underline;
+}

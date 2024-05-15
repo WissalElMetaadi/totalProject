@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <!-- DataTables CSS -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+        <!-- jQuery -->
+        <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <!-- DataTables -->
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+        <style>
+           
+           .container {
+            display: flex;
+            align-items: flex-start; /* Align items at the start */
+        }
+        .new-selection {
+            /* Styles for the new selection section */
+            flex: 1; /* Grow to take remaining space */
+            padding: 200px;
+        }
+        
+        /* Styles de base */
+        body, html {
+            height:140%;
+            margin: 10;
+            
+            font-family: 'Arial', sans-serif;
+             
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Container du formulaire */
+        .form-container {
+            background: #ffffff;
+            padding-top: 50px;
+            width: 100%;
+            height: 1200px;
+            max-width: 500px;
+            margin: 200px;
+            padding: 50px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #ff5d5d;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Amélioration du formulaire et des inputs */
+        form {
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .form-input, .form-button, .file-upload input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        /* Personnalisation du bouton d'upload */
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-upload label {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .form-button {
+            background-color: #5cb85c;
+            color: white;
+            border: 0;
+            outline: 0;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+            display: block;
+            margin-bottom: 10px;
+            object-fit: cover;
+        }
+
+        /* Footer du formulaire */
+        .form-footer {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .form-footer a {
+            color: #333;
+            text-decoration: none;
+            font-size: 0.9em;
+
+        }
+
+
+
+        .profile-picc {
+            width: 100px; /* Ajustez la taille selon vos besoins */
+            height: 100px; /* Ajustez la taille selon vos besoins */
+            border-radius: 50%;
+            
+            background-size: cover;
+            background-position: center;
+            margin: -50px auto 30px; /* Moitié de la hauteur pour remonter l'image hors du conteneur */
+            border: 4px solid #fff; /* Optionnel: ajoute une bordure pour séparer l'image du fond */
+        }
+    </style>
+            
+       
+    </head>
+<body>
+
+    
+    
+        <div class="container">
+        <header class="header">
+            <div class="breadcrumbs">
+                Pages / Dashboard
+            </div>
+            <div>
+                <input type="text" class="search-box" placeholder="Type here...">
+            </div>
+            <div class="actions">
+                
+
+                <div class="icon">
+                    <i class="far fa-star"></i>
+                    <span>admin</span>
+                    
+                </div>
+                <div class="icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user"></i>
+                    <button class="button" onclick="window.location.href='{{ url_for('login') }}'">sign in </button>
+
+                </div>
+            </div>
+        </header>
+    </div>
+    
+    
+        <div class="sidebar">
+        <h2>Profil Admin</h2>
+        <img src="{{ url_for('static', filename='images/admin.png') }}" alt="Profile Picture" width="100" height="100">
+        <h3>Nom et Prénom</h3>
+        <ul>
+            <li><i class="fas fa-home"></i><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><i class="fas fa-chart-bar"></i><a href="{{ url_for('charts_jour') }}">Charts</a></li>
+            <li><i class="fas fa-table"></i><a href="{{ url_for('data_table') }}">Tables</a></li>
+            <li><i class="fas fa-map-marker-alt"></i><a href="{{ url_for('maps') }}">Maps</a></li>
+            <li><i class="fas fa-puzzle-piece"></i><a href="{{ url_for('DragAndDrop') }}">Upload Data</a></li>
+            <li><i class="fas fa-calendar-alt"></i><a href="#">Total Coffe Shop</a></li>
+            <li><i class="fas fa-th"></i><a href="{{ url_for('total_zone') }}">Total Zones </a></li>
+            <li><i class="fas fa-edit"></i><a href="#">Rapports</a></li>
+            <li><i class="fas fa-copy"></i><a href="{{ url_for('ajoutUser') }}">Gestion d'utilisateurs</a></li>
+            <li><i class="fas fa-book"></i><a href="#">Parametres</a></li>
+        </ul>
+      </div>
+      
+        
+        <div class="new-selection">
+           
+
+    <div class="form-container">
+        <!-- Image ronde au-dessus du titre -->
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Profile Picture" width="100" height="100">
+        <h1>Ajouter un Utilisateur</h1>
+        
+            <!-- Les autres champs du formulaire -->
+             <!-- Ici, vous placez le div pour les messages flash -->
+            <div id="flash-messages" style="display:none;">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash-message" data-category="{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+
+            <form id="userForm" action="/ajoutUser" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                <label for="name">Nom</label>
+                <input type="text" id="name" name="name" class="form-input" placeholder="Nom complet" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">Genre</label>
+                <select id="gender" name="gender" class="form-input" required>
+                    <option value="">Sélectionnez le genre</option>
+                    <option value="female">Femme</option>
+                    <option value="male">Homme</option>
+                    <option value="other">Autre</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="worker_type">Type Worker</label>
+                <select id="worker_type" name="worker_type" class="form-input" required>
+                    <option value="">Sélectionnez le type du worker</option>
+                    <option value="Administrateur">Administrateur</option>
+                    <option value="Technicien de Maintenance">Technicien de Maintenance</option>
+                    <option value="Analyste de Données">Analyste de Données</option>
+                    <option value="Simple User">Simple User</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="birthdate">Date de naissance</label>
+                <input type="date" id="birthdate" name="birthdate" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label for="station">Station de travail</label>
+                <select id="station" name="station" class="form-input" required>
+                    <option value="">Sélectionnez la station</option>
+                    <option value="Station 1">Tunis</option>
+                    <option value="Station 2">Sfax</option>
+                    <option value="Station 3">Sousse</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="Mot de passe" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirmez le mot de passe</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="Confirmez le mot de passe" required>
+            </div>
+            <div class="form-group">
+                <label for="profile_picture">Photo de profil</label>
+                <div class="file-upload">
+                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
+                    <label for="profile_picture">Choisir une image</label>
+                </div>
+                <img id="imagePreview" class="image-preview" src="#" alt="Prévisualisation de l'image" hidden>
+            </div>
+
+            <button type="submit" class="form-button">Enregistrer</button>
+
+            <!-- Pied de page du formulaire -->
+            <div class="form-footer">
+                <a href="{{ url_for('dashboard') }}">Retour au tableau de bord</a>
+            </div>
+           
+        </form>
+    </div>
+    
+    </div>
+<!-- Modal -->
+    
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Les messages seront injectés ici via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+  
+    <script>
+        
+        $(document).ready(function() {
+            let messages = $('#flash-messages .flash-message');
+            if (messages.length > 0) {
+                let messageText = "";
+                messages.each(function() {
+                    messageText += $(this).text() + "<br>";
+                });
+                $('.modal-body').html(messageText);
+                $('#myModal').modal('show');
+            }
+        });
+
+
+
+
+        // JavaScript pour la prévisualisation de l'image téléchargée
+        document.getElementById('profile_picture').onchange = function (e) {
+            var imagePreview = document.getElementById('imagePreview');
+            imagePreview.src = URL.createObjectURL(e.target.files[0]);
+            imagePreview.hidden = false;
+            imagePreview.onload = function () {
+                URL.revokeObjectURL(imagePreview.src) // Pour libérer l'objet créé
+            };
+        };
+
+        
+
+        
+    </script>
+</body>
+</html>

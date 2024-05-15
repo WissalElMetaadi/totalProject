@@ -1,0 +1,75 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.booking-form-container {
+    /*background-image: url('images/image.jpg');*/
+    background-image: url('/static/images/image.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+header p {
+    font-size: 1.2rem;
+}
+
+.booking-form {
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 2rem;
+    border-radius: 8px;
+    width: 300px;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input[type="date"],
+.form-group select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: none;
+}
+
+.form-group button {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: orange;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.form-group button:hover {
+    background-color: darkorange;
+}
+
+.date-group label,
+.date-group input[type="date"] {
+    display: inline-block;
+    width: 48%; /* Adjust width so the labels and inputs sit side by side */
+}
+
+/* Additional styles for responsive layout, animations, or hover effects can be added here */

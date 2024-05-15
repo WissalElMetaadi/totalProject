@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Stylesheets -->
+        
+        
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+        <!-- jQuery -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+        <!-- jQuery UI - assurez-vous d'inclure à la fois le JS et le CSS -->
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    
+        <!-- DataTables JS (Dépend de jQuery) -->
+        <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+        <!-- Leaflet JS (Pour les cartes) -->
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/newdash.css') }}">
+</head>
+<body>
+   
+    
+    <div class="wrapper">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                
+                <img src="{{ url_for('static', filename='images/Arriere-plan.png') }}" alt="TotalEnergies" class="logo">
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-upload"></i> Upload Data</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-coffee"></i> Coffe shop</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-map"></i> Total Zone</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-map-marked-alt"></i> Maps</a></li>
+            </ul>
+        </nav>
+        <div class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <h1>DASHBOARD</h1>
+                    <p>ANALYSE DES DONNEES</p>
+                </div>
+                <div class="station-title" id="station-title">
+                    <!-- Le titre mis à jour apparaîtra ici -->
+                </div>
+                <div class="header-icons">
+                    <i class="fas fa-bell"></i>
+                    <div class="profile-pic">
+                        <img src="{{ url_for('static', filename='images/Calque2.png') }}" alt="Profile">
+                    </div>
+                </div>
+            </header>
+            <div class="content">
+                <div class="top-container">
+                    <div class="dropdown-container">
+                        <div class="dropdown-group">
+                            <label for="governorate">GOUVERNORAT</label>
+                                <select id="governorate" name="governorate" onchange="updateTitle()">
+                                    <option value="Grand Tunis">GRAND TUNIS</option>
+                                    <option value="Ariana">ARIANA</option>
+                                    <option value="Bizerte">BIZERTE</option>
+                                    <!-- Ajoutez d'autres options ici -->
+                                </select>
+                            </div>
+                            <div class="dropdown-group">
+                                <label for="station-id">ID STATION</label>
+                                <select id="station-id" name="station-id" onchange="updateTitle()">
+                                    <option value="Total N9-03">TOTAL N9-03</option>
+                                    <option value="Total N8-01">TOTAL N8-01</option>
+                                    <option value="Total S5-04">TOTAL S5-04</option>
+                                    <!-- Ajoutez d'autres options ici -->
+                                </select>
+                        </div>
+                    </div>
+                    
+                    <div class="icon-container">
+                        <button class="calendar-btn">
+                            <i class="fas fa-calendar-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="icon-bg"><img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Money Icon"></div>
+                        <div class="stat-details">
+                            <h3>Nombre de véhicules actuel</h3>
+                            <p class="stat-value">197<span class="percentage positive">+55%</span></p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon-bg"><img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Users Icon"></div>
+                        <div class="stat-details">
+                            <h3>Activity Logs</h3>
+                            <p class="stat-value">New member Added- <span class="percentage positive">SFAX</span></p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon-bg"><img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Clients Icon"></div>
+                        <div class="stat-details">
+                            <h3>Notifications et Alertes</h3>
+                            <p class="stat-value">Pompe 9 est vide <span class="percentage negative">-2%</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                               
+                    <div id="filter-container">
+                        <div id="zone-filters">
+                            <button class="zone-tab active" data-zone="Pompe" onclick="showZone('Pompe')">Pompe</button>
+                            <button class="zone-tab" data-zone="Lavage" onclick="showZone('Lavage')">Lavage</button>
+                            <button class="zone-tab" data-zone="Air" onclick="showZone('Air')">Air</button>
+                        </div>
+                        <div id="date-filter-container">
+                            <label for="date-filter">
+                                <i class="fas fa-calendar-alt calendar-icon"></i>
+                                <input type="date" id="date-filter">
+                            </label>
+                            <button id="filter-button">Filtrer</button>
+                        </div>
+                    </div>
+                
+                    <div class="filter-section">
+                        <div class="stats-container1" id="zone-container">
+                            <div class="stat-card" data-zone="Pompe">
+                                <div class="icon-bg" style="background-color: #0087fe;">
+                                    <img src="{{ url_for('static', filename='images/Calquecamion.png') }}" alt="Small Truck Icon">
+                                </div>
+                                <div class="stat-details">
+                                    <span>Small Truck</span>
+                                    <span class="stat-value" id="small-truck-value">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-zone="Pompe">
+                                <div class="icon-bg" style="background-color: #69d1fa;">
+                                    <img src="{{ url_for('static', filename='images/Calquemoto.png') }}" alt="Motorcycle Icon">
+                                </div>
+                                <div class="stat-details">
+                                    <span>Motorcycle</span>
+                                    <span class="stat-value" id="motorcycle-value">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-zone="Pompe">
+                                <div class="icon-bg" style="background-color: #83c3cd;">
+                                    <img src="{{ url_for('static', filename='images/Calquebigtruck.png') }}" alt="Big Truck Icon">
+                                </div>
+                                <div class="stat-details">
+                                    <span>Big Truck</span>
+                                    <span class="stat-value" id="big-truck-value">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-zone="Pompe">
+                                <div class="icon-bg" style="background-color: #225e93;">
+                                    <img src="{{ url_for('static', filename='images/claqueCar.png') }}" alt="Car Icon">
+                                </div>
+                                <div class="stat-details">
+                                    <span>Car</span>
+                                    <span class="stat-value" id="car-value">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-zone="Pompe">
+                                <div class="icon-bg" style="background-color: #fdd700;">
+                                    <img src="{{ url_for('static', filename='images/claquetaxi.png') }}" alt="Taxi Icon">
+                                </div>
+                                <div class="stat-details">
+                                    <span>Taxi</span>
+                                    <span class="stat-value" id="taxi-value">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-zone="Pompe">
+                                <div class="icon-bg" style="background-color: #2abfc2;">
+                                    <img src="{{ url_for('static', filename='images/claqueCM.png') }}" alt="Construction Machine Icon">
+                                </div>
+                                <div class="stat-details">
+                                    <span>Construction Machine</span>
+                                    <span class="stat-value" id="construction-machine-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                
+                
+                <h1>Daily Statics</h1>
+                <div class="date-selector">
+                    <label for="dateInput">Choisir une date :</label>
+                    <input type="date" id="dateInput" name="date">
+                </div>
+
+                <div class="container-charts">
+                    <div class="chart-container">
+                        <h2 class="chart-title">Top Fidèles Clients</h2>
+                        <div id="pyramid-chart-container"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h2 class="chart-title">Répartition des Véhicules par Classe dans la Journée</h2>
+                        <canvas id="vehicleChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h2 class="chart-title">Nombre Total de Véhicules par Heure</h2>
+                        <canvas id="vehiclesHourChart"></canvas>
+                    </div>
+                </div>
+
+                <div id="filters">
+                    <label for="type-filter">Station Area:
+                        <select id="type-filter">
+                            <option value="">Tous</option>
+                            <option value="Entrée">Entrée</option>
+                            <option value="Sortie">Sortie</option>
+                            <option value="Pompes">Pompes</option>
+                            <option value="Air">Air</option>
+                            <option value="Lavage">Lavage</option>
+                        </select>
+                    </label>
+                    <label for="date-filter">Date:
+                        <input type="date" id="date-filter">
+                    </label>
+                    <button id='button-id'>Filtrer</button>
+                </div>
+
+                <div class="dashboard-container">
+                    <table id="example" class="display">
+                        <thead>
+                            <tr>
+                                <th>track_id</th>
+                                <th>class</th>
+                                <th>license_plate_text</th>
+                                <th>score LP</th>
+                                <th>pompes_info</th>
+                                <th>date d'entrée</th>
+                                <th>date de sortie</th>
+                                <th>wait_time</th>
+                                <th>Image du véhicule</th>
+                                <th>Image de la plaque</th>
+                                <th>TotalZone</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in data %}
+                            <tr>
+                                <td><a href="#" class="track-info" data-track-id="{{ row['track_id'] }}">{{ row['track_id'] }}</a></td>
+                                <td>{{ row['class'] }}</td>
+                                <td>{{ row['license_plate_text'] }}</td>
+                                <td>{{ row['score LP'] }}</td>
+                                <td>{{ row['pompes_info'] }}</td>
+                                <td>{{ row['date d\'entrée'] }}</td>
+                                <td>{{ row['date de sortie'] }}</td>
+                                <td>{{ row['wait_time'] }}</td>
+                                <td>
+                                    {% if row['Car Image'] %}
+                                        <a href="#" onclick="openImageWindow('{{ url_for('static', filename=row['Car Image']) }}');">Voir Image du véhicule</a>
+                                    {% else %}
+                                        Pas d'image
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row['License Plate Image'] %}
+                                        <a href="#" onclick="openImageWindow('{{ url_for('static', filename=row['License Plate Image']) }}');">Voir Image de la plaque</a>
+                                    {% else %}
+                                        Pas d'image
+                                    {% endif %}
+                                </td>
+                                <td>{{ row['ZoneTotal'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <section class="map-section">
+                        <h2>Localisations Total</h2>
+                        <div id="mapid" style="width: 400px; height: 700px;"></div>
+                    </section>
+                </div>
+
+                <div id="detailsModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2>Détails de la Piste</h2>
+                        <div class="modal-body">
+                            <div class="modal-info">
+                                <p><b>Track ID:</b> <span id="modalTrackId"></span></p>
+                                <p><b>Class:</b> <span id="modalClass"></span></p>
+                                <p><b>LP Text:</b> <span id="modalLPText"></span></p>
+                                <p><b>Score LP:</b> <span id="modalScoreLP"></span></p>
+                                <p><b>Date d'entrée:</b> <span id="modalEntryDate"></span></p>
+                                <p><b>Date de sortie:</b> <span id="modalExitDate"></span></p>
+                                <p><b>Wait Time:</b> <span id="modalWaitTime"></span></p>
+                            </div>
+                            <div class="modal-images">
+                                <p><b>Image du véhicule:</b></p>
+                                <img id="modalCarImage" src="" alt="Image du véhicule" style="max-width:100%; height:auto;">
+                                <p><b>Image de la plaque:</b></p>
+                                <img id="modalPlateImage" src="" alt="Image de la plaque" style="max-width:100%; height:auto;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+
+function updateTitle() {
+            var governorate = document.getElementById('governorate').value;
+            var stationId = document.getElementById('station-id').value;
+            var titleElement = document.getElementById('station-title');
+            titleElement.textContent = `${governorate} / ${stationId}`;
+        }
+
+        // Initialise le titre avec les valeurs par défaut
+        updateTitle();
+
+
+
+
+$(document).ready(function() {
+    // Initialisation de DataTables
+    var table = $('#example').DataTable({
+        "initComplete": function(settings, json) {
+            $('input.datepicker').datepicker(); // Si vous utilisez jQuery UI Datepicker
+        }
+    });
+
+    // Ajustement de la largeur du conteneur de la table après initialisation
+    $('.dataTables_wrapper').css('width', '100%');
+
+    // Événement de clic pour ouvrir des images en popup
+    $('#example tbody').on('click', 'td a.image-link', function(e) {
+        e.preventDefault();
+        var url = $(this).attr('href');
+        openImageWindow(url);
+    });
+
+    // Fonction pour ouvrir des fenêtres de popup pour les images
+    function openImageWindow(url) {
+        var newWindow = window.open(url, 'ImagePopup', 'width=600,height=400');
+        if (newWindow) {
+            newWindow.focus();
+        } else {
+            alert('La fenêtre popup a été bloquée par le navigateur.');
+        }
+    }
+
+    // Fonction de filtrage
+    function filterTable() {
+        var type = $('#type-filter').val();
+        var date = $('#date-filter').val();
+        console.log("Type filter value:", type);
+        console.log("Date filter value:", date);
+
+        table.column(10).search(type).draw();
+        table.column(5).search(date).draw();
+
+        console.log("Current search query for type:", table.column(10).search());
+        console.log("Current search query for date:", table.column(5).search());
+    }
+
+    // Attachement de l'événement de filtrage
+    $('#button-id').on('click', filterTable);
+});
+
+// Lorsqu'un track_id est cliqué
+$('#example tbody').on('click', 'td a.track-info', function(e) {
+    e.preventDefault();
+    var tr = $(this).closest('tr');
+
+    // Log pour déboguer
+    console.log("Clic sur track_id détecté");
+
+    // Obtenez les données textuelles des cellules
+    var data = tr.find('td').map(function(index, td) {
+        if (index === 8 || index === 9) { // Les indices doivent correspondre aux cellules contenant les liens des images
+            var imageUrl = $(td).find('a').attr('href');
+            console.log("URL de l'image trouvé à l'indice " + index + ": " + imageUrl);
+            return imageUrl;
+        } else {
+            return $(td).text();
+        }
+    }).get();
+    
+    // Logs pour déboguer
+    console.log("Données récupérées de la ligne: ", data);
+
+    // Remplir la modale avec les données de la ligne
+    $('#modalTrackId').text(data[0]);
+    $('#modalClass').text(data[1]);
+    $('#modalLPText').text(data[2]);
+    $('#modalScoreLP').text(data[3]);
+    $('#modalEntryDate').text(data[5]);
+    $('#modalExitDate').text(data[6]);
+    $('#modalWaitTime').text(data[7]);
+
+    // Logs pour déboguer
+    console.log("Image du véhicule URL: " + data[8]);
+    console.log("Image de la plaque URL: " + data[9]);
+
+    // Mettez à jour les sources des images dans la modale avec les URL récupérées
+    $('#modalCarImage').attr('src', data[8]);
+    $('#modalPlateImage').attr('src', data[9]);
+
+    // Afficher la modale
+    $('#detailsModal').show();
+});
+
+// Lorsque l'utilisateur clique sur (x), fermer la modale
+$('.close').on('click', function() {
+    $('#detailsModal').hide();
+});
+
+// Lorsque l'utilisateur clique en dehors de la modale, la fermer
+$(window).on('click', function(event) {
+    if ($(event.target).hasClass('modal')) {
+        $('#detailsModal').hide();
+    }
+});
+
+
+
+// Fonctions pour la gestion des graphiques et des cartes
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    initializeMap();
+});
+
+function initializeCharts() {
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Car', 'Taxi', 'SmallTruck', 'BigTruck', 'CM', 'MOtobike'],
+            datasets: [{
+                label: 'Totale',
+                data: [12, 19, 3, 5, 2, 3, 10],
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255,99,132,1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            legend: {
+                display: false
+            },
+            maintainAspectRatio: false
+        }
+    });
+
+    new Chart(document.getElementById('lineChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Car', 'Taxi', 'SmallTruck', 'BigTruck', 'CM', 'MOtobike'],
+            datasets: [{
+                label: 'Totale',
+                data: [12, 19, 3, 5, 2, 3, 10],
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255,99,132,1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            legend: {
+                display: false
+            },
+            maintainAspectRatio: false
+        }
+    });
+    new Chart(document.getElementById('lineChartDark'), {
+        type: 'bar',
+        data: {
+            labels: ['Car', 'Taxi', 'SmallTruck', 'BigTruck', 'CM', 'MOtobike'],
+            datasets: [{
+                label: 'Totale',
+                data: [12, 19, 3, 5, 2, 3, 10],
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255,99,132,1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            legend: {
+                display: false
+            },
+            maintainAspectRatio: false
+        }
+    });
+    new Chart(document.getElementById('lineChartDark2'), {
+        type: 'bar',
+        data: {
+            labels: ['Car', 'Taxi', 'SmallTruck', 'BigTruck', 'CM', 'MOtobike'],
+            datasets: [{
+                label: 'Totale',
+                data: [12, 19, 3, 5, 2, 3, 10],
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255,99,132,1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            legend: {
+                display: false
+            },
+            maintainAspectRatio: false
+        }
+    });
+
+    // D'autres graphiques similaires ici...
+}
+
+function initializeMap() {
+    var tunisie = [36.83, 10.3];
+    var map = L.map('mapid').setView(tunisie, 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker = L.marker(tunisie).addTo(map);
+    marker.bindPopup("<b>Tunisie</b>").openPopup();
+    // Nouvelles coordonnées pour les nouvelles places
+    var place1Coords = [37.04, 9.67];
+    var place2Coords = [34.88, 10.60];
+    var place3Coords = [33.87, 10.04];
+
+    // Ajout des marqueurs pour les nouvelles places
+    var markerPlace1 = L.marker(place1Coords).addTo(map);
+    markerPlace1.bindPopup("<b>Bizerte</b>").openPopup();
+
+    var markerPlace2 = L.marker(place2Coords).addTo(map);
+    markerPlace2.bindPopup("<b>Sfax</b>").openPopup();
+
+    var markerPlace3 = L.marker(place3Coords).addTo(map);
+    markerPlace3.bindPopup("<b>Gabes</b>").openPopup();
+}
+// Supposons que myVehicleChart est la référence globale à votre graphique
+var myVehicleChart = null;
+
+function updateDataForVehicleChart() {
+    const chosenDate = document.getElementById('dateInput').value;
+    // Définir des couleurs pour chaque classe de véhicules
+    const backgroundColors = [
+        'rgba(255, 99, 132, 0.6)', // Couleur pour la première classe
+        'rgba(54, 162, 235, 0.6)', // Couleur pour la deuxième classe
+        'rgba(255, 206, 86, 0.6)', // Couleur pour la troisième classe
+        'rgba(75, 192, 192, 0.6)', // Etc.
+        'rgba(153, 102, 255, 0.6)',
+        'rgba(255, 159, 64, 0.6)',
+        'rgba(199, 199, 199, 0.6)'
+    ];
+    const borderColors = [
+        'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+        'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
+        'rgba(159, 159, 159, 1)'
+    ];
+    fetch(`/data?date=${chosenDate}`)
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('vehicleChart').getContext('2d');
+
+        // Si un graphique existe déjà, le détruire
+        if (myVehicleChart) {
+            myVehicleChart.destroy();
+        }
+
+        // Créer le nouveau graphique avec les données mises à jour
+        myVehicleChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'Nombre de véhicules par classe',
+                    data: Object.values(data),
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        fontColor: '#333',
+                        usePointStyle: true
+                    }
+                },
+                title: {
+                    display: false
+                }
+            }
+        });
+    });
+}
+
+    /* DEUXIEME CHART */
+/* DEUXIEME CHART */
+// Récupérer les données pour le deuxième graphique à partir de la nouvelle route
+var myChart = null;
+function updateDataForHourlyChart() {
+    const chosenDate = document.getElementById('dateInput').value;
+    console.log("Date choisie: ", chosenDate); // Afficher la date choisie
+
+    fetch(`/data_par_heure?date=${chosenDate}`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Réponse réseau non OK');
+        }
+        return response.json();
+    })
+    .then(allData => {
+        console.log("Données reçues: ", allData); // Afficher les données reçues
+
+        const data = allData.vehicles_per_hour;
+        const ctx = document.getElementById('vehiclesHourChart').getContext('2d');
+        // Si un graphique existe déjà, détruisez-le
+        if (myChart) {
+            myChart.destroy();
+        }
+        // Générer le graphique
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'Nombre total de véhicules par heure',
+                    data: Object.values(data),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    fill: false,
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        console.log("Graphique mis à jour pour la date: ", chosenDate); // Confirmer la mise à jour du graphique
+    })
+    .catch(error => {
+        console.error('Erreur lors de la récupération des données:', error);
+    });
+}
+
+function updateDataForPumpUsageChart() {
+    const chosenDate = document.getElementById('dateInput').value; // Récupérer la date choisie
+    
+    // Modifier la requête fetch pour inclure la date choisie comme paramètre
+    fetch(`/pump_data?date=${chosenDate}`)
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('pumpUsageChart').getContext('2d');
+        
+        // Si un graphique existe déjà, détruisez-le
+        if (window.myPumpUsageChart) {
+            window.myPumpUsageChart.destroy();
+        }
+
+        // Générer le nouveau graphique avec les données mises à jour
+        window.myPumpUsageChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'Utilisation des Pompes',
+                    data: Object.values(data),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(104, 2, 2 ,0.6)',
+                        'rgba(144, 148, 151,0.6)',
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(136, 122, 6 ,1)',
+                        'rgba(144, 148, 151,1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                // Début du dessin du graphique en degrés, -90 pour commencer du haut
+                
+            }
+        });
+    })
+    .catch(error => console.error('Erreur lors de la récupération des données:', error));
+}
+
+        /*4 eme chart*/
+    function updateDataForAvgWaitTimeChart() {
+    const chosenDate = document.getElementById('dateInput').value; // Récupérer la date choisie
+
+    // Inclure la date choisie dans la requête fetch
+    fetch(`/avg_wait_time_by_class?date=${chosenDate}`)
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('avgWaitTimeChart').getContext('2d');
+        
+        if (window.myAvgWaitTimeChart) {
+            window.myAvgWaitTimeChart.destroy(); // Si un graphique existe déjà, le détruire
+        }
+
+        // Créer le nouveau graphique avec les données filtrées
+        window.myAvgWaitTimeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'Temps d\'attente moyen (en secondes)',
+                    data: Object.values(data),
+                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+}
+
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+  var categories = document.querySelectorAll(".category > li > a");
+
+  categories.forEach(function (category) {
+    category.addEventListener("click", function (event) {
+      event.preventDefault();
+
+      var subcategory = this.nextElementSibling;
+
+      // Check if the clicked category is already open
+      if (subcategory && subcategory.style.display === "block") {
+        subcategory.style.display = "none";
+      } else {
+        // Close all other open subcategories
+        document.querySelectorAll(".subcategory").forEach(function (subcat) {
+          subcat.style.display = "none";
+        });
+
+        // Open the clicked category's subcategory
+        if (subcategory) {
+          subcategory.style.display = "block";
+        }
+      }
+    });
+  });
+});
+
+
+function updateTopClientsForDate() {
+    const chosenDate = document.getElementById('dateInput').value;
+    if (chosenDate) {
+        
+        fetch(`/get-top-clients?date=${chosenDate}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('****************',data)
+            const container = document.getElementById('pyramid-chart-container');
+            container.innerHTML = ''; // Clear previous content
+
+            // Sort data to have the highest value at the top
+            data.sort((a, b) => b.value - a.value);
+
+            // Create horizontal bar chart segments
+            data.forEach((item, index) => {
+                const barContainer = document.createElement('div');
+                barContainer.style.display = 'flex';
+                barContainer.style.alignItems = 'center';
+                barContainer.style.marginBottom = '10px';
+
+                const label = document.createElement('span');
+                label.textContent = `${item.label}: `;
+                label.style.minWidth = '100px';
+
+                const bar = document.createElement('div');
+                bar.style.height = '20px';
+                bar.style.width = `${Math.max(item.value, 1) * 10}px`; // Adjust scale as necessary
+                bar.style.backgroundColor = index % 2 === 0 ? '#4e79a7' : '#f28e2b'; // Alternate colors
+                bar.textContent = item.value;
+                bar.style.color = 'white';
+                bar.style.display = 'flex';
+                bar.style.alignItems = 'center';
+                bar.style.justifyContent = 'center';
+                bar.style.textAlign = 'right';
+                bar.style.paddingRight = '5px';
+
+                barContainer.appendChild(label);
+                barContainer.appendChild(bar);
+
+                container.appendChild(barContainer);
+            });
+        })
+        .catch(error => console.error('Error fetching top clients:', error));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    /*date*/
+    document.getElementById('dateInput').addEventListener('change', function() {
+    const chosenDate = this.value; // La date choisie par l'utilisateur
+    console.log(chosenDate); // Afficher la date choisie dans la console
+    updateDataForHourlyChart(chosenDate); 
+    updateDataForVehicleChart();// Fonction pour mettre à jour les données
+    updateDataForPumpUsageChart();
+    updateDataForAvgWaitTimeChart();
+    updateTopClientsForDate();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMap();
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const zoneButtons = document.querySelectorAll('.zone-tab');
+    const dateInput = document.getElementById('date-filter');
+    const filterButton = document.getElementById('filter-button');
+    const vehicleTypes = ["Small Truck", "Motorcycle", "Big Truck", "Car", "Taxi", "Construction Machine"];
+    
+    zoneButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            zoneButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            console.log('Zone selected:', this.getAttribute('data-zone'));
+            fetchAndUpdateStats(this.getAttribute('data-zone'), dateInput.value);
+        });
+    });
+
+    filterButton.addEventListener('click', () => {
+        const activeZone = document.querySelector('.zone-tab.active').getAttribute('data-zone');
+        const selectedDate = dateInput.value;
+        console.log('Filter button clicked. Date:', selectedDate, 'Zone:', activeZone);
+        fetchAndUpdateStats(activeZone, selectedDate);
+    });
+
+    function fetchAndUpdateStats(zone, date) {
+        console.log('Fetching data for zone:', zone, 'and date:', date);
+        fetch(`/api/data?zone=${zone}&date=${date}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error:', data.message);
+                } else {
+                    console.log('Data received:', data);
+                    vehicleTypes.forEach(type => {
+                        const elementId = `${type.toLowerCase().replace(' ', '-')}-value`;
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            element.textContent = data[type] || 0;
+                            console.log(`Updated ${type} value: ${data[type]}`);
+                        } else {
+                            console.error(`Element with id ${elementId} not found.`);
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Initialiser avec la première zone par défaut
+    fetchAndUpdateStats('Pompe', '');
+});
+
+function showZone(zone) {
+            const statContainers = document.querySelectorAll('.zone');
+            statContainers.forEach(container => {
+                if (container.getAttribute('data-zone') === zone) {
+                    container.style.display = 'flex';
+                } else {
+                    container.style.display = 'none';
+                }
+            });
+        }
+
+</script>
+</body>
+</html>
+        

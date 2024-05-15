@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Client - Station-Service</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <style>body, html {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+    }
+    
+    header {
+        background-color: #ff3300;
+        color: white;
+        padding: 3px;
+        text-align: center;
+    }
+    
+    main {
+        padding: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        margin: 10px;
+        padding: 20px;
+        flex-basis: 30%;
+        text-align: center;
+    }
+    
+    #feedback-form textarea {
+        width: 100%;
+        height: 100px;
+        margin-bottom: 10px;
+    }
+    
+    #feedback-form button {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    
+    #feedback-form button:hover {
+        background-color: #218838;
+    }
+    #sidebar {
+    width: 250px;
+    height: 100vh;
+    background: #ff3300;
+    position: fixed;
+    left: -250px;
+    transition: all 500ms ease;
+    z-index: 2; /* S'assurer que la sidebar est au-dessus du contenu */
+}
+
+#sidebar.active {
+    left: 0;
+}
+
+
+
+main {
+    padding-left: 170px; /* Ajouter un padding pour éviter le chevauchement avec la sidebar */
+    transition: margin-left 600ms; /* Animation pour le décalage du contenu */
+}
+
+main.active {
+    margin-left: 250px; /* Décaler le contenu lorsque la sidebar est active */
+}
+
+
+.toggle-btn {
+    position: fixed;
+    top: 20px; /* Ajustez selon le besoin pour le placement vertical */
+    left: 0;
+    z-index: 5; /* S'assure que le bouton est cliquable et visible */
+    background-color: #ffffff; /* Couleur de fond du bouton */
+    border-radius: 0 5px 5px 0; /* Arrondit les coins droit du bouton */
+    padding: 5px 10px; /* Ajustez selon le besoin pour la taille du bouton */
+}
+
+#sidebar.active + .toggle-btn {
+    left: 250px; /* Déplacez le bouton de basculement lorsque la sidebar est active */
+}
+
+.toggle-btn span {
+    display: block;
+    color: #000000; /* Couleur de la flèche */
+}
+
+
+
+#sidebar h1 {
+    color: #fff;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    font-size: 24px;
+    letter-spacing: 2px;
+}
+
+#sidebar p {
+    color: #fff;
+    padding: 5px 20px;
+    font-size: 14px;
+}
+
+#sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#sidebar ul li a {
+    padding: 10px 20px;
+    display: block;
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+#sidebar ul li a:hover {
+    background: #fff;
+    color: #00B4CC;
+}
+
+.fa {
+    margin-right: 10px;
+}
+/* Ajoutez ce CSS pour styler l'image de profil */
+
+.user-image {
+    text-align: center; /* Centre l'image dans la sidebar */
+    padding: 10px; /* Ajoutez du padding si nécessaire */
+}
+
+.user-image img {
+    width: 100px; /* ou la taille que vous souhaitez */
+    height: 100px; /* ou la taille que vous souhaitez */
+    border-radius: 50%; /* rend l'image ronde */
+    border: 3px solid #fff; /* ajoute une bordure blanche autour de l'image */
+    object-fit: cover; /* assure que l'image couvre bien l'espace sans être déformée */
+}
+
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bienvenue à notre Station-Service!</h1>
+    </header>
+    <div id="sidebar" class="active">
+                <!-- Toggle Button -->
+        <div class="toggle-btn" onclick="toggleSidebar()">
+            <span>&#8250;</span> <!-- Cette entité HTML représente une flèche -->
+        </div>
+        <h1>Station-Service</h1>
+    <div class="user-image">
+        <img src="path_to_user_image.jpg" alt="User Name">
+    </div>
+        <p>Interface Client</p>
+        <ul>
+            <li><a href="#"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+            <li><a href="#"><i class="fa fa-user"></i> Profil</a></li>
+            <li><a href="#"><i class="fa fa-history"></i> Historique</a></li>
+            <li><a href="#"><i class="fa fa-cogs"></i> Services</a></li>
+            <li><a href="#"><i class="fa fa-envelope"></i> Contact</a></li>
+        </ul>
+    </div>
+    
+    <main>
+        <section id="real-time-info" class="card">
+            <h2>Occupation Actuelle</h2>
+            <p id="availability">Chargement...</p>
+        </section>
+        <section id="service-reservation" class="card">
+            <h2>Réservations de Services</h2>
+            <button onclick="alert('Service de réservation à implémenter')">Réserver un Service</button>
+        </section>
+        <section id="promotions" class="card">
+            <h2>Offres et Promotions</h2>
+            <ul id="promo-list">
+                <!-- Les promotions seront ajoutées ici -->
+            </ul>
+        </section>
+        <section id="feedback" class="card">
+            <h2>Votre Avis</h2>
+            <form id="feedback-form">
+                <textarea id="feedback-text" placeholder="Laissez un commentaire..."></textarea>
+                <button type="submit">Envoyer</button>
+            </form>
+        </section>
+        <section id="visit-history" class="card">
+            <h2>Historique des Visites et Dépenses</h2>
+            <p>Historique à implémenter</p>
+        </section>
+        <section id="security-alerts" class="card">
+            <h2>Alertes de Sécurité</h2>
+            <p>Notification d'alerte à implémenter</p>
+        </section>
+    </main>
+    <script>
+        document.getElementById('feedback-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const feedbackText = document.getElementById('feedback-text').value;
+    alert('Merci pour votre avis: ' + feedbackText);
+    document.getElementById('feedback-text').value = ''; // Clear the textarea
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const availabilityText = 'Places disponibles: 5';
+    document.getElementById('availability').textContent = availabilityText;
+
+    const promotions = ['Réduction de 10% sur le lavage de voiture', 'Un café gratuit avec chaque plein de carburant'];
+    const promoList = document.getElementById('promo-list');
+    promotions.forEach(promo => {
+        const listItem = document.createElement('li');
+        listItem.textContent = promo;
+        promoList.appendChild(listItem);
+    });
+});
+function toggleSidebar() {
+    var sidebar = document.getElementById("sidebar");
+    sidebar.classList.toggle("active");
+    
+    // Changez la position de la flèche en fonction de l'état de la sidebar
+    var toggleBtn = document.querySelector(".toggle-btn");
+    if (sidebar.classList.contains("active")) {
+        toggleBtn.style.left = '250px'; // Position du bouton lorsque la sidebar est ouverte
+        toggleBtn.querySelector("span").innerHTML = "&#8249;"; // Flèche pointant vers la gauche
+    } else {
+        toggleBtn.style.left = '0px'; // Position du bouton lorsque la sidebar est fermée
+        toggleBtn.querySelector("span").innerHTML = "&#8250;"; // Flèche pointant vers la droite
+    }
+}
+
+
+
+
+    </script>
+</body>
+</html>
+
+
+
+

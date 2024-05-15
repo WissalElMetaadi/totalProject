@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <title>Dashboard</title>
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <!-- DataTables CSS -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+        <!-- jQuery -->
+        <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <!-- DataTables -->
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+        <style>
+            
+/*#### PARTIIE HEADER###*/
+.header {
+  position: fixed;
+  top: 0;
+    
+  background-color: #eef6fd;
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.1);
+  padding: 10px ;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  width: 98%;
+  z-index: 999; /* Valeur de z-index plus grande que celle de la .sidebar */
+}
+
+.header .breadcrumbs {
+  font-size: 0.9em;
+  color: #333;
+}
+.header .search-box {
+  border: 1px solid #ddd;
+  padding: 5px 10px;
+  border-radius: 20px;
+  outline: none;
+}
+.header .actions {
+  display: flex;
+  align-items: center;
+}
+.header .actions .button {
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 15px;
+  text-align: center;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.header .actions .icon {
+  margin-left: 20px;
+  cursor: pointer;
+}
+.header .actions .icon span {
+  margin-left: 5px;
+  font-size: 0.8em;
+  vertical-align: middle;
+}
+
+
+
+/*####### SIDE BAR#####*/
+.sidebar {
+    width: 250px; /* Largeur fixe pour la sidebar */
+     /* Couleur de fond de la sidebar */
+    overflow-y: auto; /* Permettre le défilement si nécessaire */
+  height: 90%;
+
+  position: fixed;
+  left: 0;
+  top: 50px; /* Assurez-vous que le top de la sidebar est positionné en dessous du header */
+  z-index: 900; /* Valeur de z-index inférieure à celle du .header */
+  /*background: url('/static/images/dashboard.png') no-repeat center center;*/
+  background-size: cover;
+  color: #fff;
+  padding: 15px 25px;
+  background-color: #eef6fd;
+  
+}
+  .sidebar h2 {
+    color: #f63b3b;
+    text-transform: uppercase;
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 10px;
+    
+  }
+  .sidebar h3 {
+    color: #fbfbfb;
+    font-family: sans-serif;
+    text-align: center;
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+  .sidebar img {
+    border-radius: 50%;
+    margin-bottom: 1px;
+    width: 70px; /* Vous pouvez ajuster cette valeur selon vos besoins */
+    height: 70px;
+    display: block; /* Pour que l'image soit considérée comme un bloc */
+    margin: auto;
+    
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: sans-serif;
+    font-weight: bold;
+  }
+  .sidebar ul li {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: rgb(217, 217, 217); /* Semi-transparent background */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  .sidebar ul li i {
+    margin-right: 10px;
+  }
+  .sidebar ul li:hover {
+    background-color: rgba(0, 0, 0, 0.4); /* Darker semi-transparent background on hover */
+  }
+  .sidebar ul li a {
+    color: #000000;
+    text-decoration: none;
+    flex-grow: 1;
+  }
+
+
+.profile-info {
+    margin-bottom: 50px;
+}
+
+.profile-info img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+           
+    /* CSS pour rendre l'iframe responsive */
+    .main-container {
+    display: flex;
+    height: 90vh; /* Ajustez la hauteur selon vos besoins */
+    padding-top: 50px;
+}
+
+
+.dashboard-iframe {
+    flex-grow: 1; /* L'iframe prend le reste de l'espace disponible */
+    width: 120%; /* Largeur relative à son conteneur */
+    border: none; /* Retirer la bordure */
+    padding-left: 200px;
+}
+
+
+            
+        </style>
+    </head>
+<body>
+    
+        <header class="header">
+            <div class="breadcrumbs">
+                Pages / Dashboard
+            </div>
+            <div>
+                <input type="text" class="search-box" placeholder="Type here...">
+            </div>
+            <div class="actions">
+                
+
+                <div class="icon">
+                    <i class="far fa-star"></i>
+                    <span>admin</span>
+                    
+                </div>
+                <div class="icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user"></i>
+                    <button class="button" onclick="window.location.href='{{ url_for('login') }}'">sign in </button>
+
+                </div>
+            </div>
+        </header>
+    
+        <div class="main-container">
+            <div class="sidebar">
+                <!-- Contenu de la sidebar -->
+                <h2>Profil Admin</h2>
+                <img src="{{ url_for('static', filename='images/admin.png') }}" alt="Profile Picture" width="100" height="100">
+                <h3>Nom et Prénom</h3>
+                <ul>
+                    <li><i class="fas fa-home"></i><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li><i class="fas fa-chart-bar"></i><a href="{{ url_for('charts_jour') }}">Charts</a></li>
+                    <li><i class="fas fa-table"></i><a href="{{ url_for('data_table') }}">Tables</a></li>
+                    <li><i class="fas fa-map-marker-alt"></i><a href="{{ url_for('maps') }}">Maps</a></li>
+                    <li><i class="fas fa-puzzle-piece"></i><a href="{{ url_for('DragAndDrop') }}">Upload Data</a></li>
+                    <li><i class="fas fa-calendar-alt"></i><a href="#">Total Coffe Shop</a></li>
+                    <li><i class="fas fa-th"></i><a href="{{ url_for('total_zone') }}">Total Zones </a></li>
+                    <li><i class="fas fa-edit"></i><a href="#">Rapports</a></li>
+                    <li><i class="fas fa-copy"></i><a href="{{ url_for('ajoutUser') }}">Gestion d'utilisateurs</a></li>
+                    <li><i class="fas fa-book"></i><a href="#">Parametres</a></li>
+                </ul>
+            </div>
+            
+            <iframe class="dashboard-iframe" title="FINAL"  src="https://app.powerbi.com/reportEmbed?reportId=d5ebf9b9-34cc-42db-88ab-2dea9b057e1a&autoAuth=true&ctid=fe6cecff-8f3a-427e-a269-b22af149989e&filterPaneEnabled=false&navContentPaneEnabled=false" frameborder="0" allowFullScreen="true"></iframe>
+        </div>
+        
+
+    <script>
+    
+
+
+
+   
+
+
+
+
+
+
+    </script>
+</body>
+</html>

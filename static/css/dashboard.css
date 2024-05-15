@@ -1,0 +1,434 @@
+body, html {
+   
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color:#ffffff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+   
+}
+.main-content {
+  width: 80%;
+  position:fix;
+  padding-left: 15% ;
+  padding-top: 5%;
+
+}
+
+
+
+/*#### PARTIIE HEADER###*/
+.header {
+  position: fixed;
+  top: 0;
+  
+  background-color: #e0dfdf;
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.1);
+  padding: 10px ;
+ 
+  padding-right: 0px;
+  display: flex;
+  justify-content: space-between;
+  
+  width: 84%;
+  z-index: 999; /* Valeur de z-index plus grande que celle de la .sidebar */
+}
+
+.header .breadcrumbs {
+  font-size: 0.9em;
+  color: #333;
+}
+.header .search-box {
+  border: 1px solid #ddd;
+  padding: 5px 10px;
+  border-radius: 20px;
+  outline: none;
+}
+.header .actions {
+  display: flex;
+  align-items: center;
+}
+.header .actions .button {
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 15px;
+  text-align: center;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.header .actions .icon {
+  margin-left: 20px;
+  cursor: pointer;
+}
+.header .actions .icon span {
+  margin-left: 5px;
+  font-size: 0.8em;
+  vertical-align: middle;
+}
+
+
+
+/*####### SIDE BAR#####*/
+.sidebar {
+  height: 100%;
+  width: 230px;
+  position: fixed;
+  left: 0;
+  top: 0px; /* Assurez-vous que le top de la sidebar est positionné en dessous du header */
+  z-index: 900; /* Valeur de z-index inférieure à celle du .header */
+  /*background: url('/static/images/dashboard.png') no-repeat center center;*/
+  background-size: cover;
+  color: #fff;
+  padding: 15px 25px;
+  background-color: #e0dfdf;
+  
+}
+  .sidebar h2 {
+    color: #f63b3b;
+    text-transform: uppercase;
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .sidebar h3 {
+    color: #080707;
+    
+    text-align: center;
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+  .sidebar img {
+    border-radius: 50%;
+    margin-bottom: 1px;
+    width: 70px; /* Vous pouvez ajuster cette valeur selon vos besoins */
+    height: 70px;
+    display: block; /* Pour que l'image soit considérée comme un bloc */
+    margin: auto;
+    
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar ul li {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: rgba(0, 0, 0, 0.2); /* Semi-transparent background */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  .sidebar ul li i {
+    margin-right: 10px;
+  }
+  .sidebar ul li:hover {
+    background-color: rgba(255, 0, 0, 0.4); /* Darker semi-transparent background on hover */
+  }
+  .sidebar ul li a {
+    color: #000000;
+    text-decoration: none;
+    flex-grow: 1;
+  }
+
+
+.profile-info {
+    margin-bottom: 50px;
+}
+
+.profile-info img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+
+
+
+
+/*##### MODAL  ###*/
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    animation-name: animatetop;
+    animation-duration: 0.4s
+}
+
+.modal-body {
+    display: flex;
+    justify-content: space-around;
+}
+
+.modal-info, .modal-images {
+    flex-basis: 50%;
+}
+
+.modal-info p, .modal-images p {
+    margin: 5px 0;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+@keyframes animatetop {
+    from {top: -300px; opacity: 0}
+    to {top: 0; opacity: 1}
+}
+
+
+
+
+
+
+      .stats-container {
+        display: flex;
+        justify-content: space-around;
+        padding: 10px;
+        background-color: #f8f9fa; /* Light gray background */
+    }
+    
+    .stat-card {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        margin: 5px;
+    }
+    
+    .icon-bg {
+        padding: 10px;
+        background-color: #e9ecef; /* Light gray icon background */
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+    
+    .icon-bg img {
+        width: 40px; /* Adjust as necessary */
+    }
+    
+    .stat-details {
+        text-align: left;
+    }
+    
+    .stat-value {
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+    
+    .percentage {
+        font-size: 0.8em;
+        font-weight: normal;
+    }
+    
+    .positive {
+        color: #28a745; /* Green for positive numbers */
+    }
+    
+    .negative {
+        color: #dc3545; /* Red for negative numbers */
+    }
+    
+
+
+
+
+
+
+    .dashboard-container {
+      display: flex;
+      justify-content: start; /* Utilisez "start" au lieu de "space-between" si les éléments ne remplissent pas tout l'espace horizontal */
+      flex-wrap: nowrap; /* Ajoutez ceci pour empêcher les éléments de se mettre à la ligne automatiquement */
+  }
+  
+  .display, .map-section {
+      flex: 1; /* Les deux éléments prendront une part égale de l'espace disponible */
+      margin: 0 10px; /* Ajoutez une petite marge entre les éléments si nécessaire */
+  }
+  
+  #mapid {
+      width: 100%; /* Cela s'assure que la carte prend toute la largeur de son conteneur */
+      height: 400px; /* Ajustez la hauteur comme nécessaire */
+  }
+  
+  #example {
+      width: 100%; /* Cela s'assure que la table prend toute la largeur de son conteneur */
+      height: auto; /* Hauteur basée sur le contenu */
+  }
+  
+  /* Optionnel : ajustements responsifs */
+  @media (max-width: 1024px) {
+      .dashboard-container {
+          flex-direction: column;
+      }
+  
+      .display, .map-section{
+          width: 100%; /* Sur les petits écrans, chaque élément prend la largeur complète */
+          margin: 10px 0; /* Ajustez les marges pour un affichage vertical */
+      }
+  }
+  
+
+
+ /* Conteneur des filtres avec display flex */
+#filters {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+
+/* Style général pour tous les inputs et selects */
+#filters input, #filters select {
+  padding: 8px 10px;
+  margin-right: 10px; /* Espace entre les éléments */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Style pour les labels */
+#filters label {
+  margin-right: 5px; /* Petit espace avant l'input/select */
+  font-size: 14px;
+  color: #555;
+}
+
+/* Style pour le bouton de filtrage */
+#filters button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#filters button:hover {
+  background-color: #0056b3;
+}
+
+ /*date*/
+ .date-selector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+  background-color: #ffffff; /* Fond clair pour le conteneur de la date */
+  border-radius: 20px; /* Bordures arrondies */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre douce pour donner du relief */
+  padding: 15px 25px; /* Espace autour du contenu du sélecteur de date */
+  width:auto; /* S'adapte à la taille du contenu */
+}
+
+.date-selector label {
+  color: #5a5a5a; /* Couleur du texte plus douce */
+  font-weight: bold; /* Texte en gras */
+  margin-right: 15px; /* Espacement avant l'input */
+}
+
+#dateInput {
+  padding: 8px 12px;
+  border-radius: 10px; /* Coins plus arrondis */
+  border: 2px solid #007bff; /* Bordure bleue */
+  background-color: #e7f0fa; /* Fond légèrement bleuté */
+  font-family: 'Arial', sans-serif;
+  transition: all 0.3s ease; /* Transition douce pour les interactions */
+}
+
+#dateInput:focus {
+  outline: none; /* Supprime l'outline par défaut */
+  border-color: #0056b3; /* Couleur de bordure plus foncée au focus */
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Halo bleu autour de l'input */
+}
+
+
+
+
+
+
+/* CSS pour aligner les charts avec un design amélioré */
+.container-charts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.chart-container {
+  flex: 1 1 25%; /* grandit pour prendre 25% de l'espace disponible */
+  margin: 10px;
+  padding: 1px; /* Ajoute de l'espace autour du contenu intérieur */
+  box-sizing: border-box; /* Inclut padding et border dans la largeur */
+  border-radius: 15px; /* Bords arrondis pour les conteneurs */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Ajoute une ombre subtile */
+  transition: transform 0.3s ease; /* Animation lors du survol */
+  width: 500px;
+  height: 300px;
+}
+
+.chart-container:hover {
+  transform: scale(1.05); /* Agrandit légèrement le conteneur lors du survol */
+}
+
+/* Définition des dégradés de fond spécifiques pour chaque conteneur de chart */
+#vehicleChart-container {
+  background: linear-gradient(to right, #f0f8ff, #b0e0e6); /* Dégradé bleu */
+}
+
+#vehiclesHourChart-container {
+  background: linear-gradient(to right, #e6e6fa, #c237c2); /* Dégradé lavande */
+}
+
+#pumpUsageChart-container {
+  background: linear-gradient(to right, #fffacd, #f0e68c); /* Dégradé jaune */
+}
+
+#pyramid-chart-container {
+  background: linear-gradient(to right, #ffffff, #929292); /* Dégradé rose */
+}
+
+.chart-title {
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 18px; /* Taille de police augmentée pour les titres */
+  color: #333; /* Couleur de police plus foncée pour une meilleure lisibilité */
+}
+
+canvas {
+  width: 100%;
+  max-width: 100%;
+}

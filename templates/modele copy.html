@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <!-- DataTables CSS -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+        <!-- jQuery -->
+        <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <!-- DataTables -->
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+        <style>
+           
+    
+            @import url(https://fonts.googleapis.com/css?family=Varela+Round);
+    
+            *, *:before, *:after {
+                box-sizing: border-box;
+            }
+    
+    
+            
+    
+            .dashboard-list {
+                display: block;
+                width: 400px;
+                padding-top: 10px;
+                margin: 0 auto;
+                position: relative;
+                height: 500px;
+            }
+    
+            .dashboard-item {
+                height: 150px;
+                width: 33.33333%;
+                background: #fff;
+                float: left;
+                display: inline;
+                box-shadow: 0 5px 30px 0 rgba(0,0,0,0.3);
+                border-radius: 7px;
+                position: absolute;
+                text-align: center;
+                padding: 20px;
+            }
+    
+            #second-item {
+                z-index: 10;
+
+                left: 54%;
+                transform: translateX(-50%);
+                top: -5px;
+                height: 200px;
+                width: 35%;
+                padding-top: 10px;
+                padding-bottom: 70px;
+            }
+    
+            #third-item {
+                right: 0;
+            }
+    
+            .dashboard-icon {
+                display: block;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin: 0 auto 2em;
+                background: #eee;
+                box-shadow: 0 0 0 4px #ddd;
+            }
+    
+            .dashboard-title {
+                font-family: "Varela Round", sans-serif;
+                font-size: 1em;
+                margin-bottom: .3em;
+                color: #2C3E50;
+            }
+    
+            .dashboard-description {
+                color: rgba(0,0,0,0.5);
+                font-size: .6em;
+                margin-bottom: 2em;
+            }
+    
+            .dashboard-image {
+                width: 500%;
+            }
+    
+            .dashboard-link {
+                text-decoration: none;
+                color: #2C3E50;
+                text-transform: uppercase;
+                letter-spacing: .2em;
+                font-size: .6em;
+            }
+        </style>
+    </head>
+<body>
+    
+    <div class="sidebar">
+        <h2>Profil Admin</h2>
+        <img src="{{ url_for('static', filename='images/admin.png') }}" alt="Profile Picture" width="100" height="100">
+        <h3>Nom et Prénom</h3>
+        <ul>
+          <li><i class="fas fa-home"></i><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li><i class="fas fa-chart-bar"></i><a href="{{ url_for('charts_jour') }}">Charts</a></li>
+          <li><i class="fas fa-table"></i><a href="{{ url_for('data_table') }}">Tables</a></li>
+          <li><i class="fas fa-map-marker-alt"></i><a href="{{ url_for('maps') }}">Maps</a></li>
+          
+          <li><i class="fas fa-puzzle-piece"></i><a href="{{ url_for('DragAndDrop') }}">Upload Data</a></li>
+          
+          <li><i class="fas fa-edit"></i><a href="#">Forms</a></li>
+          
+          
+          <li><i class="fas fa-th"></i><a href="#">Widgets</a></li>
+          
+          <li><i class="fas fa-calendar-alt"></i><a href="#">Calendar</a></li>
+          <li><i class="fas fa-copy"></i><a href="#">Pages</a></li>
+          <li><i class="fas fa-book"></i><a href="#">Documentation</a></li>
+        </ul>
+      </div>
+
+      
+    <div class="main-content">
+        <header class="header">
+            <div class="breadcrumbs">
+                Pages / Dashboard
+            </div>
+            <div>
+                <input type="text" class="search-box" placeholder="Type here...">
+            </div>
+            <div class="actions">
+                
+
+                <div class="icon">
+                    <i class="far fa-star"></i>
+                    <span>admin</span>
+                    
+                </div>
+                <div class="icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user"></i>
+                    <button class="button" onclick="window.location.href='{{ url_for('login') }}'">sign in </button>
+
+                </div>
+            </div>
+        </header>
+        
+        <div class="dashboard-container">
+            <ul class="dashboard-list">
+                <li class="dashboard-item">
+                    <div class="dashboard-icon"><img src="http://3.1m.yt/TRDtJPn.png" alt="" class="dashboard-image" /></div>
+                    <h1 class="dashboard-title">Air</h1>
+                    <a href="#" class="dashboard-link">View </a>
+                </li>
+                <li class="dashboard-item" id="second-item">
+                    <div class="dashboard-icon"><img src="http://1.1m.yt/48o8wNw.png" alt="" class="dashboard-image" /></div>
+                    <h1 class="dashboard-title">lavage</h1>
+                    <a href="#" class="dashboard-link">View </a>
+                </li>
+                <li class="dashboard-item" id="third-item">
+                    <div class="dashboard-icon"><img src="http://2.1m.yt/IBn8cEa.png" alt="" class="dashboard-image" /></div>
+                    <h1 class="dashboard-title">sortie</h1>
+                    <a href="#" class="dashboard-link">View </a>
+                </li>
+            </ul>
+        </div>
+         
+
+        
+        
+
+    <script>
+    
+
+
+
+   
+
+
+    
+
+
+    </script>
+</body>
+</html>

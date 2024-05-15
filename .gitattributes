@@ -1,0 +1,4 @@
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+finale/best7.pt filter=lfs diff=lfs merge=lfs -text
+finale/NVR6.mp4 filter=lfs diff=lfs merge=lfs -text

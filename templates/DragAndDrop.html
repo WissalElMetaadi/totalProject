@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <title>Traitement</title>
+        <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    
+        
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <!-- DataTables CSS -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+        <!-- jQuery -->
+        <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <!-- DataTables -->
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+        <style>
+          .button {
+            background-color:#df6565;/* Green background */
+            border: none; /* No borders */
+            color: white; /* White text */
+            padding: 15px 32px; /* Padding around the text */
+            text-align: center; /* Centered text */
+            text-decoration: none; /* No underline */
+            display: inline-block; /* Align on the same line */
+            font-size: 16px; /* Larger font size */
+            margin: 4px 2px; /* Some space around the button */
+            cursor: pointer; /* Pointer cursor on hover */
+            border-radius: 8px; /* Rounded corners */
+            transition: background-color 0.3s; /* Smooth transition for hover effect */
+        }
+        .control-bar {
+    position: fixed; /* Fixed position */
+    bottom: 0; /* At the bottom of the page */
+    width: 110%; /* Full width */
+    background-color: #f1f1f1; /* Light grey background */
+    padding: 10px 0; /* Padding around the content */
+    text-align: center; /* Center the buttons */
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.3); /* Add shadow for better visibility */
+}
+.header {
+  position: fixed;
+  top: 0;
+    
+  background-color: #eef6fd;
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.1);
+  padding: 10px ;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  width: 98%;
+  z-index: 999; /* Valeur de z-index plus grande que celle de la .sidebar */
+}
+
+.header .breadcrumbs {
+  font-size: 0.9em;
+  color: #333;
+}
+.header .search-box {
+  border: 1px solid #ddd;
+  padding: 5px 10px;
+  border-radius: 20px;
+  outline: none;
+}
+.header .actions {
+  display: flex;
+  align-items: center;
+}
+.header .actions .button {
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 15px;
+  text-align: center;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.header .actions .icon {
+  margin-left: 20px;
+  cursor: pointer;
+}
+.header .actions .icon span {
+  margin-left: 5px;
+  font-size: 0.8em;
+  vertical-align: middle;
+}
+
+
+
+/*####### SIDE BAR#####*/
+.sidebar {
+    width: 250px; /* Largeur fixe pour la sidebar */
+     /* Couleur de fond de la sidebar */
+    overflow-y: auto; /* Permettre le défilement si nécessaire */
+  height: 90%;
+
+  position: fixed;
+  left: 0;
+  top: 50px; /* Assurez-vous que le top de la sidebar est positionné en dessous du header */
+  z-index: 900; /* Valeur de z-index inférieure à celle du .header */
+  /*background: url('/static/images/dashboard.png') no-repeat center center;*/
+  background-size: cover;
+  color: #fff;
+  padding: 15px 25px;
+  background-color: #eef6fd;
+  
+}
+  .sidebar h2 {
+    color: #f63b3b;
+    text-transform: uppercase;
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 10px;
+    
+  }
+  .sidebar h3 {
+    color: #fbfbfb;
+    font-family: sans-serif;
+    text-align: center;
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+  .sidebar img {
+    border-radius: 50%;
+    margin-bottom: 1px;
+    width: 70px; /* Vous pouvez ajuster cette valeur selon vos besoins */
+    height: 70px;
+    display: block; /* Pour que l'image soit considérée comme un bloc */
+    margin: auto;
+    
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: sans-serif;
+    font-weight: bold;
+  }
+  .sidebar ul li {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: rgb(217, 217, 217); /* Semi-transparent background */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  .sidebar ul li i {
+    margin-right: 10px;
+  }
+  .sidebar ul li:hover {
+    background-color: rgba(0, 0, 0, 0.4); /* Darker semi-transparent background on hover */
+  }
+  .sidebar ul li a {
+    color: #000000;
+    text-decoration: none;
+    flex-grow: 1;
+  }
+
+
+.profile-info {
+    margin-bottom: 50px;
+}
+
+.profile-info img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+
+
+
+.button:hover {
+    background-color: #45a049; /* Darker green background on hover */
+}
+
+            body, html {
+              
+  background-color: #f0f2f5; /* Couleur de fond de la page */
+}
+#videoFeed {
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9; /* Définir le ratio selon vos besoins */
+}
+
+
+.drop-zone {
+  border: 2px dashed #ccc;
+  position: relative; /* Ou un autre positionnement approprié */
+  top: 70px; /* Décalage de 50% vers le bas par rapport à son parent */
+  left: 50%; /* Décalage de 50% vers la droite par rapport à son parent */
+  transform: translate(-50%, -50%); 
+  border-radius: 50px;
+  width: 300px;
+  height: 100px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  background-image: linear-gradient(to right top, #df6565, #f6cece); /* Dégradé de fond */
+  color: #fff; /* Couleur du texte */
+}
+
+.drop-zone:hover, .drop-zone.drop-zone--over {
+  background-image: linear-gradient(to right bottom, #02ae25, #65dfc9); /* Dégradé de fond lors du survol */
+  border-color: #65dfc9; /* Couleur de la bordure lors du survol */
+}
+
+/* Style pour le texte affiché dans la zone de drop pour améliorer la visibilité */
+.drop-zone p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+
+
+
+
+
+
+.video-container h1, .data-table h2 {
+        text-align: center; /* Centrage des titres */
+        padding: 15px;
+        padding-left: 100px; /* Padding plus généreux pour un meilleur look */
+        color: #ffffff; /* Couleur de texte blanc pour un meilleur contraste */
+        margin-top: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px; /* Bords plus arrondis */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Ombre légère pour un effet 3D subtil */
+    }
+.video-container h1 {
+        background: linear-gradient(to right top, #df6565, #f6cece); /* Dégradé pour le titre principal */
+        font-size: 26px; /* Taille de police plus grande */
+        font-style: italic;
+    }
+
+    .data-table h2 {
+        background: linear-gradient(45deg, #6c7c7b, #ffffff); /* Dégradé pour le sous-titre */
+        font-size: 26px;
+        font-style: italic;
+    }
+
+.content {
+    display: flex;
+    align-items: start; /* Aligner les éléments en haut */
+    justify-content: space-around; /* Espacement autour des éléments */
+    padding-left: 100px;
+    
+}
+
+.video-container, .data-table {
+    flex: 1; /* Chaque conteneur prend une part égale de l'espace */
+    margin: 0px;
+    padding: 15px;
+}
+
+.data-table table {
+    width: 98%; /* La table utilise toute la largeur du conteneur */
+    border-collapse: collapse;
+}
+
+.data-table th, .data-table td {
+    border: 1px solid #5d5d5d; /* Bordure pour les cellules */
+    padding: 8px;
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #ff2020; /* Couleur de fond pour les en-têtes */
+}
+
+.chart-title1 {
+    font-size: 25px;
+    font-style: bold;
+    font-style: italic;
+    text-align: center;
+    padding-top: 50px;
+
+}
+
+            </style>
+            
+       
+    </head>
+<body>
+    
+    <div class="sidebar">
+        <h2>Profil Admin</h2>
+        <img src="{{ url_for('static', filename='images/admin.png') }}" alt="Profile Picture" width="100" height="100">
+        <h3>Nom et Prénom</h3>
+        <ul>
+            <li><i class="fas fa-home"></i><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><i class="fas fa-chart-bar"></i><a href="{{ url_for('charts_jour') }}">Charts</a></li>
+            <li><i class="fas fa-table"></i><a href="{{ url_for('data_table') }}">Tables</a></li>
+            <li><i class="fas fa-map-marker-alt"></i><a href="{{ url_for('maps') }}">Maps</a></li>
+            <li><i class="fas fa-puzzle-piece"></i><a href="{{ url_for('DragAndDrop') }}">Upload Data</a></li>
+            <li><i class="fas fa-calendar-alt"></i><a href="#">Total Coffe Shop</a></li>
+            <li><i class="fas fa-th"></i><a href="{{ url_for('total_zone') }}">Total Zones </a></li>
+            <li><i class="fas fa-edit"></i><a href="#">Rapports</a></li>
+            <li><i class="fas fa-copy"></i><a href="{{ url_for('ajoutUser') }}">Gestion d'utilisateurs</a></li>
+            <li><i class="fas fa-book"></i><a href="#">Parametres</a></li>
+        </ul>
+      </div>
+
+      
+    <div class="main-content">
+        <header class="header">
+            <div class="breadcrumbs">
+                Pages / Dashboard
+            </div>
+            <div>
+                <input type="text" class="search-box" placeholder="Type here...">
+            </div>
+            <div class="actions">
+                
+
+                <div class="icon">
+                    <i class="far fa-star"></i>
+                    <span>admin</span>
+                    
+                </div>
+                <div class="icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user"></i>
+                    <button class="button" onclick="window.location.href='{{ url_for('login') }}'">sign in </button>
+
+                </div>
+                
+            </div>
+        </header>
+        
+        <div class="chart-container1">
+            <h2 class="chart-title1">Upload de vidéo </h2>
+            <div id="file-drop-zone" class="drop-zone">
+                Glissez et déposez des fichiers ici ou cliquez pour sélectionner des fichiers
+                <input type="file" id="file-input" multiple style="display: none;" />
+            </div>
+        </div>
+
+
+
+
+
+        
+   
+<div class="content">
+    <div class="video-container">
+        <h1>Video Stream with YOLO Detection</h1>
+        <img id="videoFeed" src="">
+
+
+    </div>
+    <div class="data-table">
+        <h2>Détails des Véhicules</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Classe</th>
+                    <th>Matricule</th>
+                    <th>Score</th>
+                    <th>DateEntrée</th>
+                    <th>DateSortie</th>
+                    <th>waitTime</th>
+                    <th>Zone</th>
+                </tr>
+            </thead>
+            <tbody id="vehicleDetails"></tbody>
+        </table>
+    </div>
+</div>
+
+          
+    <div class="control-bar">
+      <button class="button" onclick="startVideo()">Start Video</button>
+      <button class="button" onclick="stopVideo()">Stop Video</button>
+      <button class="button" >Télécharger rapport </button>
+  </div>
+
+  <!--<img id="videoFeed" src="">-->
+    <!-- <img src="{{ url_for('video_feed') }}" class="video-stream" alt="Video feed"> -->
+        
+        
+
+    <script>
+    
+
+    
+    document.addEventListener('DOMContentLoaded', (event) => {
+  const dropZone = document.getElementById('file-drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  dropZone.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (event) => {
+    handleFiles(event.target.files);
+  });
+
+  dropZone.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    dropZone.classList.add('drop-zone--over');
+  });
+
+  dropZone.addEventListener('dragleave', (event) => {
+    dropZone.classList.remove('drop-zone--over');
+  });
+
+  dropZone.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dropZone.classList.remove('drop-zone--over');
+    const files = event.dataTransfer.files;
+    handleFiles(files);
+  });
+
+  function handleFiles(files) {
+    const url = '/upload'; // L'URL du serveur où les fichiers doivent être envoyés
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file); // Créer un objet FormData et ajouter le fichier
+
+        // Envoyer le fichier au serveur avec une requête POST
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Upload successful', data);
+            // Vous pourriez ici lancer le traitement du fichier ou afficher un message de succès
+        })
+        .catch(error => {
+            console.error('Error uploading file:', error);
+        });
+
+        console.log('Fichier envoyé pour upload :', file.name);
+    }
+}
+
+});
+
+
+
+   
+
+
+        function startVideo() {
+            var img = document.getElementById('videoFeed');
+            img.src = "{{ url_for('video_feed') }}";
+        }
+
+        function stopVideo() {
+            var img = document.getElementById('videoFeed');
+            img.src = "";
+        }
+
+
+
+        
+       
+document.addEventListener('DOMContentLoaded', function () {
+    // Connect to the WebSocket server
+    const socket = io.connect(window.location.origin);
+    console.log("Connected to WebSocket server."); // Log connection
+
+    // Listen for 'new_data' events from the server
+    socket.on('new_data', function (data) {
+        console.log("Received new data from server:", data); // Log received data
+        updateTable(data.data); // Update the table with new data
+    });
+
+    // Function to update the table with details from the server
+    function updateTable(details) {
+        console.log("Updating table with new vehicle details."); // Log the update process
+        const tableBody = document.getElementById('vehicleDetails'); // Access the table body
+        tableBody.innerHTML = ''; // Clear previous entries
+
+        details.forEach(detail => {
+            const row = tableBody.insertRow(); // Insert a new row in the table
+            Object.values(detail).forEach(text => {
+                const cell = row.insertCell(); // Insert a new cell in the row
+                cell.textContent = text; // Add text to the cell
+            });
+        });
+        console.log("Table updated successfully."); // Log successful update
+    }
+});
+
+
+    
+
+
+
+    </script>
+</body>
+</html>

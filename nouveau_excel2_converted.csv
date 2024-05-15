@@ -1,0 +1,10 @@
+track_id,class,license_plate_text,score LP,pompes_info,date d'entrée,date de sortie,wait_time;;;;,Car Image,License Plate Image
+2,Taxi,211TU6617,0.806030735373497,Pompe 7,,,;;;;,uploads/car_2.jpg,uploads/211TU6617.jpg
+1,Car,188TU8229,0.8152923211455345,Pompe 6 ,,2023-12-04 08:03:18,459.7431151866913;;;;,uploads/car_1.jpg,uploads/188TU8229.jpg
+15,Car,06TU487,0.5623502631982168,,,,;;;;capture1.png,uploads/car_15.jpg,uploads/06TU487.jpg
+17,Car,157TU8276,0.7515913248062134,Pompe 5,2023-12-04 08:03:12,,;;;;,uploads/car_17.jpg,uploads/157TU8276.jpg
+12,Worker,,,Pompe 6 ,2023-12-04 08:02:59,2023-12-04 08:03:05,145.47826170921326;;;;,,
+18,Worker,,,Pompe 6 ,2023-12-04 08:03:15,2023-12-04 08:03:15,6.65948486328125;;;;,,
+13,Worker,,,Pompe 7,2023-12-04 08:02:59,,;;;;,,
+6,Taxi,,,Pompe 4,,,;;;;,uploads/car_6.jpg,
+10,Taxi,,,Pompe 4,2023-12-04 08:02:57,2023-12-04 08:03:05,178.4359962940216;;;;,,
