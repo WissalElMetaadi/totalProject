@@ -92,6 +92,7 @@
             padding-left: 20px;
             align-items: center;
             justify-content: space-between;
+            padding-right: 20px;
             
         }
         
@@ -345,10 +346,45 @@
         #pumpUsageChart-container {
             background: linear-gradient(to right, #fffacd, #f0e68c);
         }
-        
-        #pyramid-chart-container {
-            background: linear-gradient(to right, #ffffff, #929292);
+        .chart-title-green {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
         }
+        .chart-container-green {
+            background-color: #73d060; /* Green background */
+            padding: 20px;
+            border-radius: 10px;
+            color: #fff; /* White text color */
+        }
+        
+        #pyramid-chart-container.green-chart {
+            background-color: #73d060; /* Green background for the chart */
+            border: 1px solid #ffffff; /* Slightly darker green border */
+            border-radius: 10px;
+            padding: 20px;
+          }
+          
+          #pyramid-chart-container.green-chart .client-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+
+          }
+          
+          #pyramid-chart-container.green-chart .client-info .client-id {
+            font-size: 18px;
+            
+          }
+          
+          #pyramid-chart-container.green-chart .client-info .client-data {
+            font-size: 18px;
+            background-color: #ffffff; /* Darker green for the data background */
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #000;
+            
+          }
         
         .chart-title {
             margin-bottom: 10px;
@@ -508,11 +544,14 @@
 /*############################*/
 /* Styles pour le conteneur du titre de la station */
 .station-title {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
-    color: #333;
+    color: #ee2e2e;
     margin: 20px 0;
+    padding-right: 22%;
+    
     text-align: center;
+    
 }
 
 /* Styles pour les filtres de zone */

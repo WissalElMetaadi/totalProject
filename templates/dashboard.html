@@ -37,12 +37,14 @@
                 <img src="{{ url_for('static', filename='images/Arriere-plan.png') }}" alt="TotalEnergies" class="logo">
             </div>
             <ul class="sidebar-menu">
-                <li class="sidebar-item active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-upload"></i> Upload Data</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-coffee"></i> Coffe shop</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-map"></i> Total Zone</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-map-marked-alt"></i> Maps</a></li>
+                <li class="sidebar-item active"><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('charts_jour') }}"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('DragAndDrop') }}"><i class="fas fa-upload"></i> Upload Data</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('dashboard') }}"><i class="fas fa-coffee"></i> Coffe shop</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('dashboard') }}"><i class="fas fa-map"></i> Total Zone</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('data_table') }}"><i class="fas fa-map-marked-alt"></i> Maps</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('ajoutUser') }}"><i class="fas fa-map-marked-alt"></i> Gestion D'utilisateurs</a></li>
+
             </ul>
         </nav>
         <div class="main-content">
@@ -199,14 +201,15 @@
                 </div>
 
                 <div class="container-charts">
-                    <div class="chart-container">
-                        <h2 class="chart-title">Top Fidèles Clients</h2>
-                        <div id="pyramid-chart-container"></div>
+                    
+                    <div class="chart-container-green">
+                        <h2 class="chart-title-green">Top Fidèles Clients</h2>
+                        <div id="pyramid-chart-container" class="green-chart">
+                            <!-- Place your chart content here -->
+                        </div>
                     </div>
-                    <div class="chart-container">
-                        <h2 class="chart-title">Répartition des Véhicules par Classe dans la Journée</h2>
-                        <canvas id="vehicleChart"></canvas>
-                    </div>
+                    
+                    
                     <div class="chart-container">
                         <h2 class="chart-title">Nombre Total de Véhicules par Heure</h2>
                         <canvas id="vehiclesHourChart"></canvas>
@@ -802,11 +805,10 @@ function updateDataForPumpUsageChart() {
 function updateTopClientsForDate() {
     const chosenDate = document.getElementById('dateInput').value;
     if (chosenDate) {
-        
         fetch(`/get-top-clients?date=${chosenDate}`)
         .then(response => response.json())
         .then(data => {
-            console.log('****************',data)
+            console.log('****************', data);
             const container = document.getElementById('pyramid-chart-container');
             container.innerHTML = ''; // Clear previous content
 
@@ -816,25 +818,16 @@ function updateTopClientsForDate() {
             // Create horizontal bar chart segments
             data.forEach((item, index) => {
                 const barContainer = document.createElement('div');
-                barContainer.style.display = 'flex';
-                barContainer.style.alignItems = 'center';
-                barContainer.style.marginBottom = '10px';
+                barContainer.classList.add('client-info');
 
                 const label = document.createElement('span');
                 label.textContent = `${item.label}: `;
-                label.style.minWidth = '100px';
+                label.classList.add('client-id');
 
                 const bar = document.createElement('div');
-                bar.style.height = '20px';
+                bar.classList.add('client-data');
                 bar.style.width = `${Math.max(item.value, 1) * 10}px`; // Adjust scale as necessary
-                bar.style.backgroundColor = index % 2 === 0 ? '#4e79a7' : '#f28e2b'; // Alternate colors
                 bar.textContent = item.value;
-                bar.style.color = 'white';
-                bar.style.display = 'flex';
-                bar.style.alignItems = 'center';
-                bar.style.justifyContent = 'center';
-                bar.style.textAlign = 'right';
-                bar.style.paddingRight = '5px';
 
                 barContainer.appendChild(label);
                 barContainer.appendChild(bar);

@@ -20,6 +20,10 @@ from script1 import run_yolo
 from yolo_processor import process_frame
 from flask_socketio import SocketIO, emit
 import time
+from flask import url_for 
+import webbrowser #//Pour ouvrir une URL dans le navigateur par défaut.
+import threading # Pour exécuter l'ouverture du navigateur après le démarrage du serveur Flask.
+
 """ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Utilisez la base de données que vous souhaitez
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -86,8 +90,8 @@ class Users(db.Model):
         return '<Users %r>' % self.name
     
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    return redirect(url_for('login'))
 
 @app.route('/test')
 def testupload():
@@ -172,7 +176,7 @@ def data_table():
     data = read_excel('Converted_to_Excel.xlsx')
       # Modifiez le chemin relatif ici
     if 'username' not in session:
-        print(data)
+        #print(data)
         return redirect(url_for('login'))
     return render_template('data_table.html', data=data) 
 
@@ -352,7 +356,7 @@ def get_top_clients():
     pyramid_data = [{"label": lp, "value": count} for lp, count in top_clients.items()]
     
     # Debug: Afficher les données dans la console du serveur
-    print('Top clients data:', pyramid_data,"date",chosen_date)
+    #print('Top clients data:', pyramid_data,"date",chosen_date)
 
     return jsonify(pyramid_data)
 
@@ -455,7 +459,7 @@ def get_data():
     zone = request.args.get('zone')
     date_str = request.args.get('date')
     
-    print(f"Received zone: {zone}, date: {date_str}")
+    #print(f"Received zone: {zone}, date: {date_str}")
 
     filtered_df = df.copy()
 
@@ -490,12 +494,20 @@ def get_data():
     else:
         return jsonify({'error': 'An error occurred', 'message': 'No class column found in the data.'}), 400
 
-    print(f"Filtered data totals: {totals}")
+    #+(f"Filtered data totals: {totals}")
 
     return jsonify(totals)
 
+
+
+
+
+def open_browser():
+    webbrowser.open_new('http://127.0.0.1:5001/login')
+
 if __name__ == '__main__':
     app.secret_key = 'votre_cle_secrete'
+    threading.Timer(1, open_browser).start() 
     app.run(debug=True, host='0.0.0.0', port=5001,threaded=True)
 
     
