@@ -12,68 +12,70 @@
             width: 100%;
         }
         
-        .sidebar {
-            width: 200px;
-            background-color: #0087fe;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 0;
-            position: fixed;
-            height: 100%;
-            top: 0;
-            left: 0;
-        }
-        
-        .sidebar-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            background-color: white;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .sidebar-header .logo {
-            width: 80%;
-            max-width: 150px;
-            height: auto;
-        }
-        
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            width: 100%;
-            text-align: left;
-            margin-top: 90px;
-        }
-        
-        .sidebar-item {
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-        }
-        
-        .sidebar-item a {
-            color: white;
-            text-decoration: none;
-            font-size: 1em;
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-        
-        .sidebar-item i {
-            margin-right: 10px;
-        }
-        
-        .sidebar-item.active, .sidebar-item:hover {
-            background-color: #0056b3;
-        }
+        /* Sidebar styles */
+.sidebar {
+    width: 200px;
+    background-color: #0087fe;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 0;
+    position: fixed;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sidebar-header .logo {
+    width: 80%;
+    max-width: 150px;
+    height: auto;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    text-align: left;
+    margin-top: 90px;
+}
+
+.sidebar-item {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.sidebar-item a {
+    color: white;
+    text-decoration: none;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.sidebar-item i {
+    margin-right: 10px;
+}
+
+.sidebar-item.active, .sidebar-item:hover {
+    background-color: #0056b3;
+}
+
         
         .main-content {
             flex-grow: 1;
@@ -336,7 +338,7 @@
             transform: scale(1.05);
         }
         .chart-container-green:hover {
-            transform: scale(1.01);
+            transform: scale(1.05);
         }
         
         
@@ -344,7 +346,7 @@
         
         #vehiclesHourChart {
             flex: 1;
-            background: linear-gradient(to right, #e6e6fa, #ffffff);
+            
             border-radius: 10px;
             width: 100% !important;
             height: 100% !important;
@@ -361,6 +363,7 @@
             padding: 20px;
             border-radius: 10px;
             color: #fff; /* White text color */
+            max-height: 350px;
         }
         
         #pyramid-chart-container.green-chart {
@@ -402,6 +405,8 @@
         canvas {
             width: 100%;
             max-width: 100%;
+            height: 70%;
+            max-height: 70%;
         }
         /*##### MODAL  ###*/
 .modal {
@@ -595,6 +600,7 @@
 #date-filter-container {
     display: flex;
     align-items: center;
+    padding-right: 100px;
 }
 
 #date-filter-container label {
