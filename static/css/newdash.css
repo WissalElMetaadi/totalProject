@@ -210,37 +210,36 @@
         .negative {
             color: #dc3545;
         }
-        
         .dashboard-container {
             display: flex;
             justify-content: start;
             flex-wrap: nowrap;
+            height: calc(100vh - 80px); /* Ajuste la hauteur en fonction de la hauteur de l'en-tête */
         }
-        
-        .display, .map-section {
+
+        .table-container {
             flex: 1;
-            margin: 0 10px;
+            overflow-x: auto; /* Ajoute le défilement horizontal pour la table */
         }
-        
-        #mapid {
-            width: 100%;
-            height: 400px;
-        }
-        
+
+       
+
         #example {
-            width: 100%;
+            width: 50%;
             height: auto;
         }
-        
-        @media (max-width: 1024px) {
+
+        @media (max-width: 900px) {
             .dashboard-container {
                 flex-direction: column;
             }
-        
-            .display, .map-section {
-                width: 100%;
+
+            .table-container{
+                width: 50%;
                 margin: 10px 0;
             }
+
+           
         }
         
         #filters {
@@ -250,6 +249,7 @@
             background-color: #f8f9fa;
             border-bottom: 1px solid #ddd;
             margin-bottom: 20px;
+            padding-top: 70px;
         }
         
         #filters input, #filters select {
@@ -317,6 +317,7 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
+            gap:40px;
         }
         
         .chart-container {
@@ -327,25 +328,29 @@
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
-            width: 500px;
-            height: 300px;
+            width: 400px;
+            height: 350px;
         }
         
         .chart-container:hover {
             transform: scale(1.05);
         }
-        
-        #vehicleChart-container {
-            background: linear-gradient(to right, #f0f8ff, #b0e0e6);
+        .chart-container-green:hover {
+            transform: scale(1.01);
         }
         
-        #vehiclesHourChart-container {
-            background: linear-gradient(to right, #e6e6fa, #c237c2);
+        
+        
+        
+        #vehiclesHourChart {
+            flex: 1;
+            background: linear-gradient(to right, #e6e6fa, #ffffff);
+            border-radius: 10px;
+            width: 100% !important;
+            height: 100% !important;
         }
         
-        #pumpUsageChart-container {
-            background: linear-gradient(to right, #fffacd, #f0e68c);
-        }
+        
         .chart-title-green {
             font-size: 24px;
             text-align: center;
@@ -363,6 +368,7 @@
             border: 1px solid #ffffff; /* Slightly darker green border */
             border-radius: 10px;
             padding: 20px;
+            width: 400px;;
           }
           
           #pyramid-chart-container.green-chart .client-info {

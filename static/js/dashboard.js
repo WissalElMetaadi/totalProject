@@ -11,8 +11,6 @@ updateTitle();
 
 
 
-// Fonction pour ouvrir des fenêtres de popup pour les images et modal
-
 
 $(document).ready(function() {
 // Initialisation de DataTables
@@ -117,7 +115,11 @@ $('#detailsModal').hide();
 
 
 
-/*### MAP*/ 
+// Fonctions pour la gestion des graphiques et des cartes
+document.addEventListener('DOMContentLoaded', function() {
+initializeCharts();
+
+});
 
 
 function initializeMap() {
@@ -143,9 +145,15 @@ markerPlace2.bindPopup("<b>Sfax</b>").openPopup();
 
 var markerPlace3 = L.marker(place3Coords).addTo(map);
 markerPlace3.bindPopup("<b>Gabes</b>").openPopup();
-
-
 }
+
+
+
+
+
+///****chartsssss */
+
+
 // Supposons que myVehicleChart est la référence globale à votre graphique
 var myVehicleChart = null;
 
@@ -320,39 +328,6 @@ window.myPumpUsageChart = new Chart(ctx, {
 /*4 eme chart*/
 function updateDataForAvgWaitTimeChart() {
 const chosenDate = document.getElementById('dateInput').value; // Récupérer la date choisie
-
-// Inclure la date choisie dans la requête fetch
-fetch(`/avg_wait_time_by_class?date=${chosenDate}`)
-.then(response => response.json())
-.then(data => {
-const ctx = document.getElementById('avgWaitTimeChart').getContext('2d');
-
-if (window.myAvgWaitTimeChart) {
-    window.myAvgWaitTimeChart.destroy(); // Si un graphique existe déjà, le détruire
-}
-
-// Créer le nouveau graphique avec les données filtrées
-window.myAvgWaitTimeChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: Object.keys(data),
-        datasets: [{
-            label: 'Temps d\'attente moyen (en secondes)',
-            data: Object.values(data),
-            backgroundColor: 'rgba(153, 102, 255, 0.6)',
-            borderColor: 'rgba(153, 102, 255, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
-});
 }
 
 
@@ -388,11 +363,10 @@ if (subcategory) {
 function updateTopClientsForDate() {
 const chosenDate = document.getElementById('dateInput').value;
 if (chosenDate) {
-
 fetch(`/get-top-clients?date=${chosenDate}`)
 .then(response => response.json())
 .then(data => {
-    console.log('****************',data)
+    console.log('****************', data);
     const container = document.getElementById('pyramid-chart-container');
     container.innerHTML = ''; // Clear previous content
 
@@ -402,25 +376,16 @@ fetch(`/get-top-clients?date=${chosenDate}`)
     // Create horizontal bar chart segments
     data.forEach((item, index) => {
         const barContainer = document.createElement('div');
-        barContainer.style.display = 'flex';
-        barContainer.style.alignItems = 'center';
-        barContainer.style.marginBottom = '10px';
+        barContainer.classList.add('client-info');
 
         const label = document.createElement('span');
         label.textContent = `${item.label}: `;
-        label.style.minWidth = '100px';
+        label.classList.add('client-id');
 
         const bar = document.createElement('div');
-        bar.style.height = '20px';
+        bar.classList.add('client-data');
         bar.style.width = `${Math.max(item.value, 1) * 10}px`; // Adjust scale as necessary
-        bar.style.backgroundColor = index % 2 === 0 ? '#4e79a7' : '#f28e2b'; // Alternate colors
         bar.textContent = item.value;
-        bar.style.color = 'white';
-        bar.style.display = 'flex';
-        bar.style.alignItems = 'center';
-        bar.style.justifyContent = 'center';
-        bar.style.textAlign = 'right';
-        bar.style.paddingRight = '5px';
 
         barContainer.appendChild(label);
         barContainer.appendChild(bar);
@@ -450,8 +415,7 @@ const chosenDate = this.value; // La date choisie par l'utilisateur
 console.log(chosenDate); // Afficher la date choisie dans la console
 updateDataForHourlyChart(chosenDate); 
 updateDataForVehicleChart();// Fonction pour mettre à jour les données
-updateDataForPumpUsageChart();
-updateDataForAvgWaitTimeChart();
+
 updateTopClientsForDate();
 });
 
