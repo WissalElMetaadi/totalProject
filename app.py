@@ -157,7 +157,8 @@ def total_zone():
 
 @app.route('/DragAndDrop')
 def DragAndDrop():
-    return render_template('DragAndDrop.html')
+    active_item = 'Upload Data'
+    return render_template('DragAndDrop.html',active_item=active_item)
 
 @app.route('/modele')
 def modele():
@@ -165,7 +166,10 @@ def modele():
 
 @app.route('/charts_jour')
 def charts_jour():
-    return render_template('charts_jour.html')
+    active_item = 'statistiques'
+    print(active_item)
+    print('hhhhhhhhhhhhhhhhhhhhhhh')
+    return render_template('charts_jour.html',active_item=active_item)
 
 @app.route('/semaine')
 def charts_semaine():
@@ -227,10 +231,13 @@ def logout():
 
 @app.route('/dashboard')
 def dashboard():
+    active_item = 'dashboard'
     data = read_excel('DATA.xlsx')  # Modifiez le chemin relatif ici
     if 'username' not in session:
         return redirect(url_for('login'))
-    return render_template('dashboard.html', data=data)
+    return render_template('dashboard.html', data=data,active_item=active_item)
+@app.route('/dashboardwess')
+
 
 def read_excel(file_name):
     # Utilisez un chemin relatif ou configurez correctement le chemin absolu

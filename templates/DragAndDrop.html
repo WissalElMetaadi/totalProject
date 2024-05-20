@@ -302,7 +302,9 @@
             <li><i class="fas fa-chart-bar"></i><a href="{{ url_for('charts_jour') }}">Charts</a></li>
             <li><i class="fas fa-table"></i><a href="{{ url_for('data_table') }}">Tables</a></li>
             <li><i class="fas fa-map-marker-alt"></i><a href="{{ url_for('maps') }}">Maps</a></li>
-            <li><i class="fas fa-puzzle-piece"></i><a href="{{ url_for('DragAndDrop') }}">Upload Data</a></li>
+            <li  class="sidebar-item {% if active_item == 'upload data' %}active{% endif %}">
+              <a href="{{ url_for('DragAndDrop') }}" id="wess-link"><i class="fas fa-tachometer-alt"></i> Upload Data</a>
+          </li>
             <li><i class="fas fa-calendar-alt"></i><a href="#">Total Coffe Shop</a></li>
             <li><i class="fas fa-th"></i><a href="{{ url_for('total_zone') }}">Total Zones </a></li>
             <li><i class="fas fa-edit"></i><a href="#">Rapports</a></li>

@@ -36,7 +36,9 @@
                 <img src="{{ url_for('static', filename='images/Arriere-plan.png') }}" alt="TotalEnergies" class="logo">
             </div>
             <ul class="sidebar-menu">
-                <li class="sidebar-item active"><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li  class="sidebar-item {% if active_item == 'dashboard' %}active{% endif %}">
+                    <a href="{{ url_for('dashboard') }}" id="wess-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                </li>
                 <li class="sidebar-item"><a href="{{ url_for('charts_jour') }}"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
                 <li class="sidebar-item"><a href="{{ url_for('DragAndDrop') }}"><i class="fas fa-upload"></i> Upload Data</a></li>
                 <li class="sidebar-item"><a href="{{ url_for('dashboard') }}"><i class="fas fa-coffee"></i> Coffe shop</a></li>
