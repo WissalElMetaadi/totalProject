@@ -463,3 +463,30 @@ function showZone(zone) {
     });
 }
 //#######################################################
+document.addEventListener("DOMContentLoaded", function () {
+    var categories = document.querySelectorAll(".category > li > a");
+
+    categories.forEach(function (category) {
+        category.addEventListener("click", function (event) {
+            event.preventDefault();
+
+            var subcategory = this.nextElementSibling;
+
+            // Check if the clicked category is already open
+            if (subcategory && subcategory.style.display === "block") {
+                subcategory.style.display = "none";
+            } else {
+                // Close all other open subcategories
+                document.querySelectorAll(".subcategory").forEach(function (subcat) {
+                    subcat.style.display = "none";
+                });
+
+                // Open the clicked category's subcategory
+                if (subcategory) {
+                    subcategory.style.display = "block";
+                }
+            }
+        });
+    });
+});
+//#########################################################################
