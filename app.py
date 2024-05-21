@@ -102,9 +102,9 @@ def testupload():
 def user():
     return render_template('user.html')
 
-@app.route('/NouvDashboard')
-def NouvDashboard():
-    return render_template('NouvDashboard.html')
+@app.route('/PowerBiDash')
+def PowerBiDash():
+    return render_template('PowerBiDash.html')
 
 
 
@@ -406,7 +406,7 @@ def process_video(VIDEO_PATH):
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
             process_and_send_data(combined_dict)
     cap.release() 
-
+#pour la page drag and drop
 def process_and_send_data(detections):
     """
     Process the detections dictionary and send data to the client.
