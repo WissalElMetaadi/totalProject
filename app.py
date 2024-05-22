@@ -33,11 +33,14 @@ db = SQLAlchemy(app) """
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:JEONjungkook123@localhost/totalbd'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = r'C:\Users\Utilisateur\Desktop\projet_flask'
+app.config['UPLOAD_FOLDER'] = r'C:\Users\Utilisateur\Desktop\projet_flask\uploads'
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 100 MB limit
-
+app.config['SQLALCHEMY_BINDS'] = {
+    'secondary_db': 'mysql+mysqlconnector://root:JEONjungkook123@localhost/station_total'
+}
 
 db = SQLAlchemy(app)
 
@@ -55,8 +58,47 @@ class User(db.Model):
 
 with app.app_context():
     db.create_all()
+    
+class Station(db.Model):
+    __bind_key__ = 'secondary_db'
+    __tablename__ = 'stations'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), unique=True, nullable=False)
+    governorate_id = db.Column(db.Integer, db.ForeignKey('governorates.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<Station {self.name}>'
 
 
+class Governorate(db.Model):
+    __bind_key__ = 'secondary_db'
+    __tablename__ = 'governorates'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<Governorate {self.name}>'
+
+
+class User1(db.Model):
+    __bind_key__ = 'secondary_db'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    gender = db.Column(db.Enum('female', 'male', 'other'), nullable=False)
+    worker_type = db.Column(db.Enum('global_admin', 'governorate_admin', 'station_admin', 
+                                    'Technicien de Maintenance', 'Analyste de Données', 'Simple User'), nullable=False)
+    birthdate = db.Column(db.Date, nullable=False)
+    station_id = db.Column(db.Integer, nullable=False)
+    governorate_id = db.Column(db.Integer, nullable=False)
+    cin = db.Column(db.String(255), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    profile_picture = db.Column(db.String(255), nullable=False)
+
+    def __repr__(self):
+        return f'<User1 {self.name}>'
+    
+    
 
 class Vehicule(db.Model):
     __tablename__ = 'vehicules'
@@ -88,7 +130,99 @@ class Users(db.Model):
     profile_picture = db.Column(db.LargeBinary)
     def __repr__(self):
         return '<Users %r>' % self.name
+
+
+@app.route('/add_governorate', methods=['POST'])
+def add_governorate():
+    try:
+        data = request.get_json()
+        new_governorate = Governorate(name=data['name'])
+        db.session.add(new_governorate)
+        db.session.commit()
+        return jsonify({'message': 'Governorate added successfully!'}), 201
+    except Exception as e:
+        logging.error(f'Error adding governorate: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/add_user1', methods=['GET', 'POST'])
+def add_user1():
+    try:
+        data = request.form
+        logging.debug(f'Received data: {data}')
+        
+        password_hash = generate_password_hash(data['password'])
+
+        new_user1 = User1(
+            name=data['name'],
+            email=data['email'],
+            gender=data['gender'],
+            worker_type=data['worker_type'],
+            birthdate=data['birthdate'],
+            station_id=data['station_id'],
+            governorate_id=data['governorate_id'],
+            cin=data['cin'],
+            password_hash=password_hash,
+            profile_picture=data['profile_picture']
+        )
+        db.session.add(new_user1)
+        db.session.commit()
+        return jsonify({'message': 'User1 added successfully to the secondary database!'}), 201
+    except Exception as e:
+        logging.error(f'Error adding user1: {e}')
+        return jsonify({'error': str(e)}), 500
     
+@app.route('/get_users1', methods=['GET'])
+def get_users1():
+    try:
+        users = User1.query.all()
+        user_list = []
+        for user in users:
+            user_data = {
+                'id': user.id,
+                'name': user.name,
+                'email': user.email,
+                'gender': user.gender,
+                'worker_type': user.worker_type,
+                'birthdate': user.birthdate.strftime('%Y-%m-%d'),
+                'station_id': user.station_id,
+                'governorate_id': user.governorate_id,
+                'cin': user.cin,
+                'profile_picture': user.profile_picture
+            }
+            user_list.append(user_data)
+        return jsonify(user_list)
+    except Exception as e:
+        logging.error(f'Error fetching users1: {e}')
+        return jsonify({'error': str(e)}), 500
+@app.route('/add_station', methods=['POST'])
+def add_station():
+    try:
+        data = request.get_json()
+        logging.debug(f'Received data for new station: {data}')  # Log the received data
+        if not data:
+            logging.error('No data received')
+            return jsonify({'error': 'No data received'}), 400
+        if 'name' not in data or 'governorate_id' not in data:
+            logging.error('Incomplete data received')
+            return jsonify({'error': 'Incomplete data received'}), 400
+
+        # Verify that the governorate_id exists
+        governorate = Governorate.query.get(data['governorate_id'])
+        if not governorate:
+            logging.error(f'Governorate ID {data["governorate_id"]} does not exist')
+            return jsonify({'error': 'Invalid governorate_id'}), 400
+
+        new_station = Station(name=data['name'], governorate_id=data['governorate_id'])
+        db.session.add(new_station)
+        db.session.commit()
+        logging.debug(f'Station added: {new_station}')
+        return jsonify({'message': 'Station added successfully!'}), 201
+    except Exception as e:
+        logging.error(f'Error adding station: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/')
 def home():
     return redirect(url_for('login'))
