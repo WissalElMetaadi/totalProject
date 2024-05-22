@@ -200,6 +200,7 @@ def add_station():
     try:
         data = request.get_json()
         logging.debug(f'Received data for new station: {data}')  # Log the received data
+        print(data,'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
         if not data:
             logging.error('No data received')
             return jsonify({'error': 'No data received'}), 400
@@ -207,13 +208,16 @@ def add_station():
             logging.error('Incomplete data received')
             return jsonify({'error': 'Incomplete data received'}), 400
 
+        
         # Verify that the governorate_id exists
-        governorate = Governorate.query.get(data['governorate_id'])
+        governorate = Governorate.query.filter_by(name=data['governorate_id']).first()
+
         if not governorate:
             logging.error(f'Governorate ID {data["governorate_id"]} does not exist')
             return jsonify({'error': 'Invalid governorate_id'}), 400
-
-        new_station = Station(name=data['name'], governorate_id=data['governorate_id'])
+        
+        governorate_id = governorate.id  # Extract the ID of the governorate
+        new_station = Station(name=data['name'], governorate_id=governorate_id)
         db.session.add(new_station)
         db.session.commit()
         logging.debug(f'Station added: {new_station}')
@@ -221,6 +225,26 @@ def add_station():
     except Exception as e:
         logging.error(f'Error adding station: {e}')
         return jsonify({'error': str(e)}), 500
+    
+
+@app.route('/delete_user/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    print(user_id, 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+    try:
+        user = User1.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({'message': 'User deleted successfully!'}), 200
+    except Exception as e:
+        logging.error(f'Error deleting user: {e}')
+        return jsonify({'error': str(e)}), 500
+
+    
+
+
 
 
 @app.route('/')
@@ -228,8 +252,10 @@ def home():
     return redirect(url_for('login'))
 
 @app.route('/test')
-def testupload():
-    return render_template('test.html')
+def test():
+    gouvernorates = Governorate.query.all()
+    print(gouvernorates,'hhhhhhhhhhhhhhh')
+    return render_template('test.html', governorates=gouvernorates)
 
 
 @app.route('/user')
