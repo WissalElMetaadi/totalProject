@@ -1,348 +1,1533 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <title>User</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-        <!-- DataTables CSS -->
-        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
-        <!-- jQuery -->
-        <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-        <!-- DataTables -->
-        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
-        <style>
-           
-           .container {
-            display: flex;
-            align-items: flex-start; /* Align items at the start */
-        }
-        .new-selection {
-            /* Styles for the new selection section */
-            flex: 1; /* Grow to take remaining space */
-            padding: 200px;
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <style>
+              body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            
+            
+            padding-left: 10px;
         }
         
-        /* Styles de base */
-        body, html {
-            height:140%;
-            margin: 10;
-            
-            font-family: 'Arial', sans-serif;
-             
+        .wrapper {
+            display: flex;
+            height: 1000%;
+            width: 100%;
+        }
+        
+        .sidebar {
+            width: 200px;
+            background-color: #0087fe;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 0;
+            position: fixed;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        .sidebar-header {
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            background-color: white;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .sidebar-header .logo {
+            width: 80%;
+            max-width: 150px;
+            height: auto;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            text-align: left;
+            margin-top: 90px;
+        }
+        
+        .sidebar-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        
+        .sidebar-item a {
+            color: white;
+            text-decoration: none;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .sidebar-item i {
+            margin-right: 10px;
+        }
+        
+        .sidebar-item.active, .sidebar-item:hover {
+            background-color: #0056b3;
+        }
+        
+        .main-content {
+            flex-grow: 1;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            margin-left: 180px;
+            
+            
+            width: 80%;
+        }
+        
+        .header {
+            background-color: white;
+            display: flex;
+            padding-left: 20px;
+            align-items: center;
+            justify-content: space-between;
+            padding-right: 20px;
+            
+        }
+        
+        .header-content {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header-content h1 {
+            margin: 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .header-content p {
+            margin: 0;
+            font-size: 0.7em;
+            color: #666;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-icons i {
+            font-size: 1.5em;
+            color: gray;
+            margin-right: 20px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .header-icons i::after {
+            content: '5';
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.8em;
+        }
+        
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+           
+        }
+        
+        .profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .btn-container{
+            padding-top: 120px;
+            padding-left: 550px;
+            padding-bottom: 30px;
         }
 
-        /* Container du formulaire */
-        .form-container {
-            background: #ffffff;
-            padding-top: 50px;
-            width: 100%;
-            height: 1200px;
-            max-width: 500px;
-            margin: 200px;
-            padding: 50px;
+
+        /*##############################################################*/
+
+        .container-dynamic {
+            background-color: #fff;
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 1200px;
+            padding-top: 60px;
+            margin-left: 80px;
         }
 
         h1 {
-            color: #ff5d5d;
-            margin-bottom: 20px;
             text-align: center;
-        }
-
-        /* Amélioration du formulaire et des inputs */
-        form {
-            width: 100%;
-        }
-
-        .form-group {
             margin-bottom: 20px;
+        }
+
+        .controls-dynamic {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-top: 60px;
+            padding-left: 200px ;
+        }
+
+        .controls-dynamic input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .controls-dynamic button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .controls-dynamic button i {
+            margin-right: 5px;
+            font-size: 18px;
+        }
+
+        .controls-dynamic button:hover {
+            background-color: #45a049;
+        }
+
+        .table-dynamic {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .table-dynamic th, .table-dynamic td {
+            padding: 12px;
             text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            color: #666;
+        .table-dynamic th {
+            cursor: pointer;
+            position: relative;
         }
 
-        .form-input, .form-button, .file-upload input[type="file"] {
+        .table-dynamic th i {
+            margin-left: 5px;
+        }
+
+        .table-dynamic th.id-column, .table-dynamic th.station-column {
+            background-color: #f9f9f9;
+        }
+
+        .table-dynamic tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .modal-dynamic {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content-dynamic {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            position: relative;
+            color: white;
+        }
+
+        .close-dynamic {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+
+        .close-dynamic:hover,
+        .close-dynamic:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .form-dynamic input, .form-dynamic select, .form-dynamic button {
             width: 100%;
             padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            box-sizing: border-box;
-        }
-
-        /* Personnalisation du bouton d'upload */
-        .file-upload {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-
-        .file-upload label {
-            background: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-            display: inline-block;
-        }
-
-        .form-button {
-            background-color: #5cb85c;
-            color: white;
-            border: 0;
-            outline: 0;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .image-preview {
-            width: 100px;
-            height: 100px;
-            border-radius: 5px;
-            display: block;
             margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-dynamic button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .form-dynamic button:hover {
+            background-color: #45a049;
+        }
+
+        .message-dynamic {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .message-dynamic.success {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .message-dynamic.error {
+            background-color: #FF0000;
+            color: white;
+        }
+
+        .profile-picture-dynamic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             object-fit: cover;
         }
 
-        /* Footer du formulaire */
-        .form-footer {
-            margin-top: 20px;
-            text-align: center;
+        .actions-dynamic button {
+            margin-right: 5px;
         }
 
-        .form-footer a {
-            color: #333;
-            text-decoration: none;
-            font-size: 0.9em;
-
+        button.edit-btn-dynamic {
+            background-color: #007BFF;
+            color: white;
         }
 
+        button.edit-btn-dynamic:hover {
+            background-color: #0056b3;
+        }
 
+        button.delete-btn-dynamic {
+            background-color: #FF0000;
+            color: white;
+        }
 
-        .profile-picc {
-            width: 100px; /* Ajustez la taille selon vos besoins */
-            height: 100px; /* Ajustez la taille selon vos besoins */
-            border-radius: 50%;
-            
-            background-size: cover;
-            background-position: center;
-            margin: -50px auto 30px; /* Moitié de la hauteur pour remonter l'image hors du conteneur */
-            border: 4px solid #fff; /* Optionnel: ajoute une bordure pour séparer l'image du fond */
+        button.delete-btn-dynamic:hover {
+            background-color: #cc0000;
+        }
+
+        .table-dynamic thead th {
+            background-color: #007bff !important; /* Bleu Bootstrap */
+            color: white !important;
+        }
+        .btn-container .btn {
+            padding: 20px 70px; /* Augmente la taille du bouton */
+            font-size: 18px; /* Augmente la taille du texte */
+            border-radius: 8px; /* Ajoute des bords arrondis */
+        }
+        .btn-container {
+            margin-bottom: 20px; /* Ajoute de l'espace en bas du conteneur */
+            display: flex;
+            gap: 10px; /* Ajoute un espace entre les boutons */
         }
     </style>
-            
-       
-    </head>
+</head>
 <body>
-
-    
-    
-        <div class="container">
-        <header class="header">
-            <div class="breadcrumbs">
-                Pages / Dashboard
+    <div class="wrapper">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='images/Arriere-plan.png') }}" alt="TotalEnergies" class="logo">
             </div>
-            <div>
-                <input type="text" class="search-box" placeholder="Type here...">
-            </div>
-            <div class="actions">
-                
+            <ul class="sidebar-menu">
+                <li class="sidebar-item active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-upload"></i> Upload Data</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-coffee"></i> Coffee Shop</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-map"></i> Total Zone</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-map-marked-alt"></i> Maps</a></li>
+            </ul>
+        </nav>
+        <div class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <h1>Data Base</h1>
+                    <p>Hello Admin</p>
+                </div>
+                <div class="header-icons">
+                    <i class="fas fa-bell"></i>
+                    <div class="profile-pic">
+                        <img src="{{ url_for('static', filename='images/Calque2.png') }}" alt="Profile">
+                    </div>
+                </div>
+            </header>
 
-                <div class="icon">
-                    <i class="far fa-star"></i>
-                    <span>admin</span>
+            <div class="btn-container">
+                <button class="btn btn-primary" onclick="showSection('usersSection')">Utilisateurs</button>
+                <button class="btn btn-secondary" onclick="showSection('governoratesSection')">Gouvernorats</button>
+                <button class="btn btn-success" onclick="showSection('stationsSection')">Stations</button>
+            </div>
+
+            <!-- Users Section -->
+            <div id="usersSection" class="container-dynamic section-content">
+                <h1>Liste des Utilisateurs</h1>
+                <div class="controls-dynamic">
+                    <input type="text" id="search-dynamic" placeholder="Search users..." onkeyup="searchTableDynamic('users')">
                     
+                    <button  class="btn btn-primary" data-toggle="modal" data-target="#addUserModal"><i class="fas fa-user-plus"></i>Add User</button>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-cog"></i>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-user"></i>
-                    <button class="button" onclick="window.location.href='{{ url_for('login') }}'">sign in </button>
-
-                </div>
+                <table id="userTableDynamic" class="table-dynamic">
+                    <thead>
+                        <tr>
+                            <th class="id-column" onclick="sortTableDynamic('users', 0)">ID <i class="fas fa-sort"></i></th>
+                            <th>Profile Picture</th>
+                            <th onclick="sortTableDynamic('users', 1)">Name <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTableDynamic('users', 2)">Email <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTableDynamic('users', 3)">Gender <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTableDynamic('users', 4)">Worker Type <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTableDynamic('users', 5)">Birthdate <i class="fas fa-sort"></i></th>
+                            <th class="station-column" onclick="sortTableDynamic('users', 6)">Station <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTableDynamic('users', 7)">Governorate <i class="fas fa-sort"></i></th>
+                            <th>CIN</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user1TableBody">
+                        <!-- Rows will be added dynamically here -->
+                    </tbody>
+                </table>
             </div>
-        </header>
-    </div>
-    
-    
-        <div class="sidebar">
-        <h2>Profil Admin</h2>
-        <img src="{{ url_for('static', filename='images/admin.png') }}" alt="Profile Picture" width="100" height="100">
-        <h3>Nom et Prénom</h3>
-        <ul>
-            <li><i class="fas fa-home"></i><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li><i class="fas fa-chart-bar"></i><a href="{{ url_for('charts_jour') }}">Charts</a></li>
-            <li><i class="fas fa-table"></i><a href="{{ url_for('data_table') }}">Tables</a></li>
-            <li><i class="fas fa-map-marker-alt"></i><a href="{{ url_for('maps') }}">Maps</a></li>
-            <li><i class="fas fa-puzzle-piece"></i><a href="{{ url_for('DragAndDrop') }}">Upload Data</a></li>
-            <li><i class="fas fa-calendar-alt"></i><a href="#">Total Coffe Shop</a></li>
-            <li><i class="fas fa-th"></i><a href="{{ url_for('total_zone') }}">Total Zones </a></li>
-            <li><i class="fas fa-edit"></i><a href="#">Rapports</a></li>
-            <li><i class="fas fa-copy"></i><a href="{{ url_for('ajoutUser') }}">Gestion d'utilisateurs</a></li>
-            <li><i class="fas fa-book"></i><a href="#">Parametres</a></li>
-        </ul>
+
+            <!-- Governorates Section -->
+            <div id="governoratesSection" class="container-dynamic section-content" style="display: none;">
+                <h1>Liste des Gouvernorats</h1>
+                <div class="controls-dynamic">
+                    <input type="text" id="search-dynamic-governorates" placeholder="Search governorates..." onkeyup="searchTableDynamic('governorates')">
+                    <button class="btn btn-secondary" data-toggle="modal" data-target="#addGovernorateModal">
+                        <i class="fas fa-plus"></i> Add Governorate
+                    </button>
+                </div>
+                <table id="governorateTableDynamic" class="table-dynamic">
+                    <thead>
+                        <tr>
+                            <th class="id-column" onclick="sortTableDynamic('governorates', 0)">ID <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTableDynamic('governorates', 1)">Name <i class="fas fa-sort"></i></th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="governorateTableBody">
+                        <!-- Rows will be added dynamically here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Stations Section -->
+            <div id="stationsSection" class="container-dynamic section-content" style="display: none;">
+                <h1>Liste des Stations</h1>
+                <div class="controls-dynamic">
+                    <input type="text" id="search-dynamic-stations" placeholder="Search stations..." onkeyup="searchTableDynamic('stations')">
+                    <button class="btn btn-success" data-toggle="modal" data-target="#addStationModal">
+                        <i class="fas fa-plus"></i> Add Station
+                    </button>
+                </div>
+                <table id="stationTableDynamic" class="table-dynamic">
+                    <thead>
+                        <tr>
+                            <th class="id-column" onclick="sortTableDynamic('stations', 0)">ID <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTableDynamic('stations', 1)">Name <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTableDynamic('stations', 2)">Governorate <i class="fas fa-sort"></i></th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stationTableBody">
+                        <!-- Rows will be added dynamically here -->
+                    </tbody>
+                </table>
+            </div>
+
+    <!-- Modal pour user -->
+    <!-- Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addUserModalLabel">Ajouter Utilisateur</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="addUserForm">
+                  <div class="form-group">
+                      <label for="name">Nom</label>
+                      <input type="text" class="form-control" id="name" name="name" placeholder="Nom" required>
+                  </div>
+                  <div class="form-group">
+                      <label for="email">Email</label>
+                      <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                  </div>
+                  <div class="form-group">
+                      <label for="gender">Genre</label>
+                      <select class="form-control" id="gender" name="gender" required>
+                          <option value="" disabled selected>Choisir Genre</option>
+                          <option value="female">Femme</option>
+                          <option value="male">Homme</option>
+                          <option value="other">Autre</option>
+                      </select>
+                  </div>
+                  <div class="form-group">
+                      <label for="worker_type">Type de Travailleur</label>
+                      <select class="form-control" id="worker_type" name="worker_type" required>
+                          <option value="" disabled selected>Choisir Type de Travailleur</option>
+                          <option value="global_admin">Administrateur Global</option>
+                          <option value="governorate_admin">Administrateur Gouvernorat</option>
+                          <option value="station_admin">Administrateur Station</option>
+                          <option value="Technicien de Maintenance">Technicien de Maintenance</option>
+                          <option value="Analyste de Données">Analyste de Données</option>
+                          <option value="Simple User">Utilisateur Simple</option>
+                      </select>
+                  </div>
+                  <div class="form-group">
+                      <label for="birthdate">Date de Naissance</label>
+                      <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+                  </div>
+                  <div class="form-group">
+                      <label for="station_id">ID de la Station</label>
+                      <input type="number" class="form-control" id="station_id" name="station_id" placeholder="ID de la Station" required>
+                  </div>
+                  <div class="form-group">
+                      <label for="governorate_id">ID du Gouvernorat</label>
+                      <input type="number" class="form-control" id="governorate_id" name="governorate_id" placeholder="ID du Gouvernorat" required>
+                  </div>
+                  <div class="form-group">
+                      <label for="cin">CIN</label>
+                      <input type="text" class="form-control" id="cin" name="cin" placeholder="CIN" required>
+                  </div>
+                  <div class="form-group">
+                      <label for="password">Mot de Passe</label>
+                      <input type="password" class="form-control" id="password" name="password" placeholder="Mot de Passe" required>
+                  </div>
+                  <div class="form-group">
+                      <label for="profile_picture">URL de la Photo de Profil</label>
+                      <input type="text" class="form-control" id="profile_picture" name="profile_picture" placeholder="URL de la Photo de Profil" required>
+                  </div>
+                  <button type="button" class="btn btn-primary" id="addUserButton">Ajouter Utilisateur</button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
-      
-        
-        <div class="new-selection">
-           
 
-    <div class="form-container">
-        <!-- Image ronde au-dessus du titre -->
-        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Profile Picture" width="100" height="100">
-        <h1>Ajouter un Utilisateur</h1>
-        
-            <!-- Les autres champs du formulaire -->
-             <!-- Ici, vous placez le div pour les messages flash -->
-            <div id="flash-messages" style="display:none;">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="flash-message" data-category="{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-            </div>
-
-
-            <form id="userForm" action="/ajoutUser" method="post" enctype="multipart/form-data">
-                <div class="form-group">
-                <label for="name">Nom</label>
-                <input type="text" id="name" name="name" class="form-input" placeholder="Nom complet" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" class="form-input" placeholder="Email" required>
-            </div>
-            <div class="form-group">
-                <label for="gender">Genre</label>
-                <select id="gender" name="gender" class="form-input" required>
-                    <option value="">Sélectionnez le genre</option>
-                    <option value="female">Femme</option>
-                    <option value="male">Homme</option>
-                    <option value="other">Autre</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="worker_type">Type Worker</label>
-                <select id="worker_type" name="worker_type" class="form-input" required>
-                    <option value="">Sélectionnez le type du worker</option>
-                    <option value="Administrateur">Administrateur</option>
-                    <option value="Technicien de Maintenance">Technicien de Maintenance</option>
-                    <option value="Analyste de Données">Analyste de Données</option>
-                    <option value="Simple User">Simple User</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="birthdate">Date de naissance</label>
-                <input type="date" id="birthdate" name="birthdate" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label for="station">Station de travail</label>
-                <select id="station" name="station" class="form-input" required>
-                    <option value="">Sélectionnez la station</option>
-                    <option value="Station 1">Tunis</option>
-                    <option value="Station 2">Sfax</option>
-                    <option value="Station 3">Sousse</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" class="form-input" placeholder="Mot de passe" required>
-            </div>
-            <div class="form-group">
-                <label for="confirm_password">Confirmez le mot de passe</label>
-                <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="Confirmez le mot de passe" required>
-            </div>
-            <div class="form-group">
-                <label for="profile_picture">Photo de profil</label>
-                <div class="file-upload">
-                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
-                    <label for="profile_picture">Choisir une image</label>
+    <!-- Modale pour ajouter un gouvernorat -->
+     <!-- Modale pour ajouter un gouvernorat -->
+     <div class="modal fade" id="addGovernorateModal" tabindex="-1" role="dialog" aria-labelledby="addGovernorateModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addGovernorateModalLabel">Ajouter Gouvernorat</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <img id="imagePreview" class="image-preview" src="#" alt="Prévisualisation de l'image" hidden>
+                <div class="modal-body">
+                    <form id="addGovernorateForm">
+                        <div class="form-group">
+                            <label for="governorateName">Nom du gouvernorat</label>
+                            <input type="text" class="form-control" id="governorateName" placeholder="Nom du gouvernorat" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                </div>
             </div>
+        </div>
+    </div>
 
-            <button type="submit" class="form-button">Enregistrer</button>
+    <!-- Modale pour ajouter une station -->
+    <div class="modal fade" id="addStationModal" tabindex="-1" role="dialog" aria-labelledby="addStationModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStationModalLabel">Ajouter Station</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addStationForm">
+                        <div class="form-group">
+                            <label for="stationName">Nom de la station</label>
+                            <input type="text" class="form-control" id="stationName" placeholder="Nom de la station" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="stationGovernorate">Gouvernorat</label>
+                            <select id="stationGovernorate" required>
+                                <option value="" disabled selected>Select gov</option>
+                                {% for governorate in governorates %}
+                                <option value="{{ governorate.name }}">{{ governorate.name }}</option>
+                                 {% endfor %}
+                            </select>
+                            
 
-            <!-- Pied de page du formulaire -->
-            <div class="form-footer">
-                <a href="{{ url_for('dashboard') }}">Retour au tableau de bord</a>
+                                <!-- Options will be added dynamically here -->
+                            
+                        </div>
+                        <button type="submit" class="btn btn-success">Enregistrer</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                </div>
             </div>
-           
-        </form>
+        </div>
     </div>
-    
+
+    <!-- Modale pour ajouter une zone -->
+    <div class="modal fade" id="addZoneModal" tabindex="-1" role="dialog" aria-labelledby="addZoneModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addZoneModalLabel">Ajouter Zone</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addZoneForm">
+                        <div class="form-group">
+                            <label for="zoneName">Nom de la zone</label>
+                            <input type="text" class="form-control" id="zoneName" placeholder="Nom de la zone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="zoneStation">Station</label>
+                            <select class="form-control" id="zoneStation" required>
+                                <option value="">Sélectionnez la station</option>
+                                <option value="1">Station 1</option>
+                                <option value="2">Station 2</option>
+                                <option value="3">Station 3</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-info">Enregistrer</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
     </div>
-<!-- Modal -->
-    
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+
+
+
+    <!-- Modale pour modifier un gouvernorat -->
+    <!-- Modale pour modifier un gouvernorat -->
+<div class="modal fade" id="editGovernorateModal" tabindex="-1" role="dialog" aria-labelledby="editGovernorateModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Message</h5>
+                <h5 class="modal-title" id="editGovernorateModalLabel">Modifier Gouvernorat</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <!-- Les messages seront injectés ici via JavaScript -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                <div id="currentGovernorateInfo">
+                    <p><strong>Nom actuel du gouvernorat:</strong> <span id="currentGovernorateName"></span></p>
+                </div>
+                <form id="editGovernorateForm">
+                    <input type="hidden" id="editGovernorateId">
+                    <div class="form-group">
+                        <label for="editGovernorateName">Nouveau nom du gouvernorat</label>
+                        <input type="text" class="form-control" id="editGovernorateName" placeholder="Nom du gouvernorat" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-  
+<!-- Modale pour modifier une station -->
+<div class="modal fade" id="editStationModal" tabindex="-1" role="dialog" aria-labelledby="editStationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editStationModalLabel">Modifier Station</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="currentStationInfo">
+                    <p><strong>Nom actuel de la station:</strong> <span id="currentStationName"></span></p>
+                    <p><strong>Gouvernorat actuel:</strong> <span id="currentStationGovernorate"></span></p>
+                </div>
+                <form id="editStationForm">
+                    <input type="hidden" id="editStationId">
+                    <div class="form-group">
+                        <label for="editStationName">Nouveau nom de la station</label>
+                        <input type="text" class="form-control" id="editStationName" placeholder="Nom de la station" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStationGovernorate">Nouveau gouvernorat</label>
+                        <select class="form-control" id="editStationGovernorate" required>
+                            <option value="" disabled selected>Select governorate</option>
+                            {% for governorate in governorates %}
+                                <option value="{{ governorate.id }}">{{ governorate.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale pour modifier un utilisateur -->
+<div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Modifier Utilisateur</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="currentUserInfo">
+                    <p><strong>Nom actuel:</strong> <span id="currentUserName"></span></p>
+                    <p><strong>Email actuel:</strong> <span id="currentUserEmail"></span></p>
+                    <!-- Ajouter d'autres informations actuelles si nécessaire -->
+                </div>
+                <form id="editUserForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-group">
+                        <label for="editUserName">Nouveau nom</label>
+                        <input type="text" class="form-control" id="editUserName" placeholder="Nom" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserEmail">Nouvel email</label>
+                        <input type="email" class="form-control" id="editUserEmail" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserGender">Genre</label>
+                        <select class="form-control" id="editUserGender" required>
+                            <option value="" disabled selected>Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserWorkerType">Type de travailleur</label>
+                        <select class="form-control" id="editUserWorkerType" required>
+                            <option value="global_admin">Administrateur Global</option>
+                            <option value="governorate_admin">Administrateur Gouvernorat</option>
+                            <option value="station_admin">Administrateur Station</option>
+                            <option value="Technicien de Maintenance">Technicien de Maintenance</option>
+                            <option value="Analyste de Données">Analyste de Données</option>
+                            <option value="Simple User">Utilisateur Simple</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserBirthdate">Date de naissance</label>
+                        <input type="date" class="form-control" id="editUserBirthdate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserStation">Station</label>
+                        <select class="form-control" id="editUserStation" required>
+                            <option value="" disabled selected>Select station</option>
+                            {% for station in stations %}
+                                <option value="{{ station.id }}">{{ station.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserGovernorate">Gouvernorat</label>
+                        <select class="form-control" id="editUserGovernorate" required>
+                            <option value="" disabled selected>Select governorate</option>
+                            {% for governorate in governorates %}
+                                <option value="{{ governorate.id }}">{{ governorate.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserCIN">CIN</label>
+                        <input type="text" class="form-control" id="editUserCIN" placeholder="CIN" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script>
-        
         $(document).ready(function() {
-            let messages = $('#flash-messages .flash-message');
-            if (messages.length > 0) {
-                let messageText = "";
-                messages.each(function() {
-                    messageText += $(this).text() + "<br>";
+            // Add User Functionality
+            $('#addUserButton').click(function() {
+                var formData = {
+                    name: $('#name').val(),
+                    email: $('#email').val(),
+                    gender: $('#gender').val(),
+                    worker_type: $('#worker_type').val(),
+                    birthdate: $('#birthdate').val(),
+                    station_id: $('#station_id').val(),
+                    governorate_id: $('#governorate_id').val(),
+                    cin: $('#cin').val(),
+                    password: $('#password').val(),
+                    profile_picture: $('#profile_picture').val()
+                };
+    
+                $.ajax({
+                    type: 'POST',
+                    url: '/add_user1',
+                    data: formData,
+                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                    processData: true,
+                    success: function(response) {
+                        alert(response.message);
+                        $('#addUserForm')[0].reset();
+                        $('#addUserModal').modal('hide');  // Close the modal on success
+                    },
+                    error: function(response) {
+                        alert('Failed to add user');
+                    }
                 });
-                $('.modal-body').html(messageText);
-                $('#myModal').modal('show');
+            });
+    
+            // Initial fetch and render
+            fetchUsers();
+            fetchGovernorates();
+            fetchStations();
+    
+            // Attach event handlers
+            $('#addGovernorateForm').on('submit', addGovernorate);
+            $('#addStationForm').on('submit', addStation);
+        });
+    
+        // Users Management
+        // ----------------
+        let users = [];
+        let governorates = [];
+        let stations = [];
+    
+        // Fetch Users
+        const fetchUsers = () => {
+            $.ajax({
+                type: 'GET',
+                url: '/get_users1',
+                success: function(response) {
+                    users = response;
+                    renderTableDynamic('users');
+                },
+                error: function() {
+                    alert('Failed to fetch users');
+                }
+            });
+        };
+    
+        // Render Users Table
+        const renderTableDynamic = (type) => {
+            let tableBody;
+            if (type === 'users') {
+                tableBody = $('#user1TableBody');
+                tableBody.empty();
+                users.forEach((user, index) => {
+                    const row = `
+                        <tr>
+                            <td class="id-column">${user.id}</td>
+                            <td><img src="${user.profile_picture}" class="profile-picture-dynamic" alt="Profile Picture"></td>
+                            <td>${user.name}</td>
+                            <td>${user.email}</td>
+                            <td>${user.gender}</td>
+                            <td>${user.worker_type}</td>
+                            <td>${user.birthdate}</td>
+                            <td class="station-column">${user.station_id}</td>
+                            <td>${user.governorate_id}</td>
+                            <td>${user.cin}</td>
+                            <td class="actions-dynamic">
+                                <button class="edit-btn-dynamic" onclick="openEditUserModal(${index})"><i class="fas fa-edit"></i></button>
+                                <button class="delete-btn-dynamic" onclick="deleteRowDynamic(${user.id}, ${index}, 'user')"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>`;
+                    tableBody.append(row);
+                });
+            } else if (type === 'governorates') {
+                tableBody = $('#governorateTableBody');
+                tableBody.empty();
+                governorates.forEach((governorate, index) => {
+                    const row = `
+                        <tr>
+                            <td class="id-column">${governorate.id}</td>
+                            <td>${governorate.name}</td>
+                            <td class="actions-dynamic">
+                                <button class="edit-btn-dynamic" onclick="openEditGOUVModalDynamic(${index}, 'governorate')"><i class="fas fa-edit"></i></button>
+                                <button class="delete-btn-dynamic" onclick="deleteRowDynamic(${governorate.id}, ${index}, 'governorate')"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>`;
+                    tableBody.append(row);
+                });
+            } else if (type === 'stations') {
+                tableBody = $('#stationTableBody');
+                tableBody.empty();
+                stations.forEach((station, index) => {
+                    const row = `
+                        <tr>
+                            <td class="id-column">${station.id}</td>
+                            <td>${station.name}</td>
+                            <td>${station.governorate_id}</td>
+                            <td class="actions-dynamic">
+                                <button class="edit-btn-dynamic" onclick="openEditStationModal(${index})"><i class="fas fa-edit"></i></button>
+                                <button class="delete-btn-dynamic" onclick="deleteRowDynamic(${station.id}, ${index}, 'station')"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>`;
+                    tableBody.append(row);
+                });
             }
+        };
+    
+        // Add User
+        window.addRowDynamic = () => {
+            const id = $("#addIdDynamic").val();
+            const name = $("#addNameDynamic").val();
+            const email = $("#addEmailDynamic").val();
+            const gender = $("#addGenderDynamic").val();
+            const workerType = $("#addWorkerTypeDynamic").val();
+            const birthdate = $("#addBirthdateDynamic").val();
+            const station = $("#addStationDynamic").val();
+            const governorate = $("#addGovernorateDynamic").val();
+            const cin = $("#addCINDynamic").val();
+            const profilePictureFile = $("#addProfilePictureDynamic").prop('files')[0];
+    
+            if (id && name && email && gender && workerType && birthdate && station && governorate && cin && profilePictureFile) {
+                const formData = new FormData();
+                formData.append('file', profilePictureFile);
+    
+                // Upload image
+                $.ajax({
+                    type: 'POST',
+                    url: '/upload',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        const profilePictureUrl = '/uploads/' + response.filename;
+                        const userData = {
+                            id: id,
+                            name: name,
+                            email: email,
+                            gender: gender,
+                            workerType: workerType,
+                            birthdate: birthdate,
+                            station: station,
+                            governorate: governorate,
+                            cin: cin,
+                            profile_picture: profilePictureUrl
+                        };
+    
+                        // Save user
+                        $.ajax({
+                            type: 'POST',
+                            url: '/add_user1',
+                            data: JSON.stringify(userData),
+                            contentType: 'application/json',
+                            success: function(response) {
+                                users.push(userData);
+                                renderTableDynamic('users');
+                                closeAddModalDynamic();
+                                showMessageDynamic('addMessageDynamic', 'User added successfully!', true);
+                            },
+                            error: function() {
+                                showMessageDynamic('addMessageDynamic', 'Failed to add user!', false);
+                            }
+                        });
+                    },
+                    error: function() {
+                        showMessageDynamic('addMessageDynamic', 'Failed to upload image!', false);
+                    }
+                });
+            } else {
+                showMessageDynamic('addMessageDynamic', 'Please fill out all fields!', false);
+            }
+        };
+    
+        // Delete User
+        window.deleteRowDynamic = (userId, index, type) => {
+            if (confirm('Are you sure you want to delete this user?')) {
+                $.ajax({
+                    type: 'DELETE',
+                    url: `/delete_${type}/${userId}`,
+                    success: function(response) {
+                        alert(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully!`);
+                        if (type === 'user') {
+                            users.splice(index, 1);
+                        } else if (type === 'governorate') {
+                            governorates.splice(index, 1);
+                        } else if (type === 'station') {
+                            stations.splice(index, 1);
+                        }
+                        renderTableDynamic(type);
+                    },
+                    error: function(response) {
+                        alert(`Failed to delete ${type}: ` + response.responseText);
+                    }
+                });
+            }
+        };
+    
+        // Sort Table
+        window.sortTableDynamic = (type, columnIndex) => {
+            let data;
+            if (type === 'users') {
+                data = users;
+            } else if (type === 'governorates') {
+                data = governorates;
+            } else if (type === 'stations') {
+                data = stations;
+            }
+            data.sort((a, b) => {
+                const cellA = Object.values(a)[columnIndex].toString().toLowerCase();
+                const cellB = Object.values(b)[columnIndex].toString().toLowerCase();
+                return cellA > cellB ? 1 : -1;
+            });
+            renderTableDynamic(type);
+        };
+    
+        // Search Table
+        window.searchTableDynamic = (type) => {
+            const query = $("#search-dynamic").val().toLowerCase();
+            let data, tableBody;
+            if (type === 'users') {
+                data = users;
+                tableBody = $('#user1TableBody');
+            } else if (type === 'governorates') {
+                data = governorates;
+                tableBody = $('#governorateTableBody');
+            } else if (type === 'stations') {
+                data = stations;
+                tableBody = $('#stationTableBody');
+            }
+            const filteredData = data.filter(item => {
+                return Object.values(item).some(val => val.toString().toLowerCase().includes(query));
+            });
+            renderFilteredTable(type, filteredData, tableBody);
+        };
+    
+        const renderFilteredTable = (type, data, tableBody) => {
+            tableBody.empty();
+            data.forEach((item, index) => {
+                let row = '';
+                if (type === 'users') {
+                    row = `
+                        <tr>
+                            <td class="id-column">${item.id}</td>
+                            <td><img src="${item.profile_picture}" class="profile-picture-dynamic" alt="Profile Picture"></td>
+                            <td>${item.name}</td>
+                            <td>${item.email}</td>
+                            <td>${item.gender}</td>
+                            <td>${item.worker_type}</td>
+                            <td>${item.birthdate}</td>
+                            <td class="station-column">${item.station_id}</td>
+                            <td>${item.governorate_id}</td>
+                            <td>${item.cin}</td>
+                            <td class="actions-dynamic">
+                                <button class="edit-btn-dynamic" onclick="openEditUserModal(${index})"><i class="fas fa-edit"></i></button>
+                                <button class="delete-btn-dynamic" onclick="deleteRowDynamic(${item.id}, ${index}, 'user')"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>`;
+                } else if (type === 'governorates') {
+                    row = `
+                        <tr>
+                            <td class="id-column">${item.id}</td>
+                            <td>${item.name}</td>
+                            <td class="actions-dynamic">
+                                <button class="edit-btn-dynamic" onclick="openEditGOUVModalDynamic(${index}, 'governorate')"><i class="fas fa-edit"></i></button>
+                                <button class="delete-btn-dynamic" onclick="deleteRowDynamic(${item.id}, ${index}, 'governorate')"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>`;
+                } else if (type === 'stations') {
+                    row = `
+                        <tr>
+                            <td class="id-column">${item.id}</td>
+                            <td>${item.name}</td>
+                            <td>${item.governorate_id}</td>
+                            <td class="actions-dynamic">
+                                <button class="edit-btn-dynamic" onclick="openEditStationModal(${index})"><i class="fas fa-edit"></i></button>
+                                <button class="delete-btn-dynamic" onclick="deleteRowDynamic(${item.id}, ${index}, 'station')"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>`;
+                }
+                tableBody.append(row);
+            });
+        };
+    
+        // Governorates Management
+        // -----------------------
+        const fetchGovernorates = () => {
+            $.ajax({
+                type: 'GET',
+                url: '/get_governorates',
+                success: function(governoratesData) {
+                    governorates = governoratesData;
+                    renderTableDynamic('governorates');
+                },
+                error: function(response) {
+                    alert('Failed to fetch governorates');
+                }
+            });
+        };
+    
+        const addGovernorate = (event) => {
+            event.preventDefault();
+            const name = $('#governorateName').val();
+            if (name) {
+                const governorateData = { name: name };
+    
+                $.ajax({
+                    type: 'POST',
+                    url: '/add_governorate',
+                    data: JSON.stringify(governorateData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        fetchGovernorates();
+                        $('#addGovernorateForm')[0].reset();
+                        $('#addGovernorateModal').modal('hide');
+                        alert('Governorate added successfully!');
+                    },
+                    error: function() {
+                        alert('Failed to add governorate');
+                    }
+                });
+            } else {
+                alert('Please enter a name for the governorate');
+            }
+        };
+    
+        // Stations Management
+        // -------------------
+        const fetchStations = () => {
+            $.ajax({
+                type: 'GET',
+                url: '/get_stations',
+                success: function(stationsData) {
+                    stations = stationsData;
+                    renderTableDynamic('stations');
+                },
+                error: function(response) {
+                    alert('Failed to fetch stations');
+                }
+            });
+        };
+    
+        const addStation = (event) => {
+            event.preventDefault();
+            const name = $('#stationName').val();
+            const governorateId = $('#stationGovernorate').val();
+    
+            if (name && governorateId) {
+                const stationData = { name: name, governorate_id: governorateId };
+    
+                $.ajax({
+                    type: 'POST',
+                    url: '/add_station',
+                    data: JSON.stringify(stationData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        fetchStations();
+                        $('#addStationForm')[0].reset();
+                        $('#addStationModal').modal('hide');
+                        alert('Station added successfully!');
+                    },
+                    error: function(response) {
+                        alert('Failed to add station: ' + response.responseText);
+                    }
+                });
+            } else {
+                alert('Please enter a name for the station and select a governorate');
+            }
+        };
+    
+        // Utility Functions
+        // -----------------
+        const showMessageDynamic = (elementId, message, isSuccess) => {
+            const messageElement = $(`#${elementId}`);
+            messageElement.text(message);
+            messageElement.removeClass('success error').addClass(isSuccess ? 'success' : 'error').show();
+            setTimeout(() => {
+                messageElement.hide();
+            }, 3000);
+        };
+    
+        const openAddModalDynamic = (type) => {
+            $('#dynamicModalLabel').text(`Ajouter ${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            $('#dynamicForm').empty();
+            if (type === 'user') {
+                $('#dynamicForm').html(`
+                    <div class="form-group">
+                        <label for="name">Nom</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <!-- Add other user fields here -->
+                `);
+            } else if (type === 'governorate') {
+                $('#dynamicForm').html(`
+                    <div class="form-group">
+                        <label for="governorateName">Nom du Gouvernorat</label>
+                        <input type="text" class="form-control" id="governorateName" required>
+                    </div>
+                `);
+            } else if (type === 'station') {
+                $('#dynamicForm').html(`
+                    <div class="form-group">
+                        <label for="stationName">Nom de la Station</label>
+                        <input type="text" class="form-control" id="stationName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="stationGovernorate">Gouvernorat</label>
+                        <select class="form-control" id="stationGovernorate" required>
+                            <!-- Options will be added dynamically here -->
+                        </select>
+                    </div>
+                `);
+                fetchGovernoratesOptions();
+            }
+        };
+    
+        const fetchGovernoratesOptions = () => {
+            $.ajax({
+                type: 'GET',
+                url: '/get_governorates',
+                success: function(response) {
+                    const governorateSelect = $('#stationGovernorate');
+                    governorateSelect.empty();
+                    response.forEach(gov => {
+                        governorateSelect.append(`<option value="${gov.id}">${gov.name}</option>`);
+                    });
+                },
+                error: function() {
+                    alert('Failed to fetch governorates');
+                }
+            });
+        };
+
+        //###############  EDIT GOUVERNORAT
+    
+       
+const openEditGOUVModalDynamic = (index) => {
+    const governorate = governorates[index];
+    $('#editGovernorateId').val(governorate.id);
+    $('#editGovernorateName').val(governorate.name);
+    $('#currentGovernorateName').text(governorate.name); // Afficher le nom actuel
+    $('#editGovernorateModal').modal('show');
+};
+
+
+
+
+$('#editGovernorateForm').on('submit', function(event) {
+    event.preventDefault();
+    const id = $('#editGovernorateId').val();
+    const name = $('#editGovernorateName').val();
+
+    if (id && name) {
+        const governorateData = { name: name };
+
+        $.ajax({
+            type: 'PUT',
+            url: `/update_governorate/${id}`,
+            data: JSON.stringify(governorateData),
+            contentType: 'application/json',
+            success: function(response) {
+                fetchGovernorates(); // Rafraîchir la liste des gouvernorats
+                $('#editGovernorateForm')[0].reset();
+                $('#editGovernorateModal').modal('hide'); // Fermer la modale
+                alert('Gouvernorat modifié avec succès !');
+            },
+            error: function() {
+                alert('Échec de la modification du gouvernorat');
+            }
+        });
+    } else {
+        alert('Veuillez entrer un nom pour le gouvernorat');
+    }
+});
+//______________________________________________
+$('#editStationForm').on('submit', function(event) {
+    event.preventDefault();
+    const id = $('#editStationId').val();
+    const name = $('#editStationName').val();
+    const governorate_id = $('#editStationGovernorate').val();
+
+    if (id && name && governorate_id) {
+        const stationData = { name: name, governorate_id: governorate_id };
+
+        $.ajax({
+            type: 'PUT',
+            url: `/update_station/${id}`,
+            data: JSON.stringify(stationData),
+            contentType: 'application/json',
+            success: function(response) {
+                fetchStations(); // Rafraîchir la liste des stations
+                $('#editStationForm')[0].reset();
+                $('#editStationModal').modal('hide'); // Fermer la modale
+                alert('Station modifiée avec succès !');
+            },
+            error: function() {
+                alert('Échec de la modification de la station');
+            }
+        });
+    } else {
+        alert('Veuillez remplir tous les champs');
+    }
+});
+//_______________________________________________________--
+// Soumission du formulaire de modification d'un utilisateur
+$(document).ready(function() {
+            // Fonction pour ouvrir la modale de modification d'un utilisateur
+            const openEditUserModal = (index) => {
+                const user = users[index]; // Assurez-vous que la variable `users` est définie et contient les données nécessaires
+                $('#editUserId').val(user.id);
+                $('#currentUserName').text(user.name);
+                $('#currentUserEmail').text(user.email);
+                $('#editUserName').val(user.name);
+                $('#editUserEmail').val(user.email);
+                $('#editUserGender').val(user.gender);
+                $('#editUserWorkerType').val(user.worker_type);
+                $('#editUserBirthdate').val(user.birthdate);
+                $('#editUserStation').val(user.station_id);
+                $('#editUserGovernorate').val(user.governorate_id);
+                $('#editUserCIN').val(user.cin);
+                $('#editUserModal').modal('show');
+            };
+
+            // Soumission du formulaire de modification d'un utilisateur
+            $('#editUserForm').on('submit', function(event) {
+                event.preventDefault(); // Empêche le comportement par défaut du formulaire (qui est de recharger la page)
+
+                const id = $('#editUserId').val(); // Récupère la valeur de l'ID de l'utilisateur depuis le champ caché
+                const name = $('#editUserName').val(); // Récupère le nouveau nom de l'utilisateur depuis le champ de saisie
+                const email = $('#editUserEmail').val(); // Récupère le nouvel email de l'utilisateur depuis le champ de saisie
+                const gender = $('#editUserGender').val(); // Récupère la nouvelle valeur du genre de l'utilisateur depuis la liste déroulante
+                const worker_type = $('#editUserWorkerType').val(); // Récupère le nouveau type de travailleur depuis la liste déroulante
+                const birthdate = $('#editUserBirthdate').val(); // Récupère la nouvelle date de naissance de l'utilisateur
+                const station_id = $('#editUserStation').val(); // Récupère la station sélectionnée depuis la liste déroulante
+                const governorate_id = $('#editUserGovernorate').val(); // Récupère le gouvernorat sélectionné depuis la liste déroulante
+                const cin = $('#editUserCIN').val(); // Récupère le nouveau CIN de l'utilisateur
+
+                // Vérifie que tous les champs requis sont remplis
+                if (id && name && email && gender && worker_type && birthdate && station_id && governorate_id && cin) {
+                    const userData = {
+                        name: name,
+                        email: email,
+                        gender: gender,
+                        worker_type: worker_type,
+                        birthdate: birthdate,
+                        station_id: station_id,
+                        governorate_id: governorate_id,
+                        cin: cin
+                    }; // Crée un objet contenant les nouvelles données de l'utilisateur
+
+                    $.ajax({
+                        type: 'PUT', // Spécifie le type de requête HTTP (PUT pour la mise à jour)
+                        url: `/update_user/${id}`, // URL de l'API côté serveur pour mettre à jour l'utilisateur, avec l'ID de l'utilisateur en paramètre
+                        data: JSON.stringify(userData), // Convertit les données de l'utilisateur en une chaîne JSON pour l'envoyer au serveur
+                        contentType: 'application/json', // Spécifie le type de contenu comme étant du JSON
+                        success: function(response) { // Fonction de rappel exécutée en cas de succès de la requête
+                            fetchUsers(); // Appelle la fonction pour rafraîchir la liste des utilisateurs
+                            $('#editUserForm')[0].reset(); // Réinitialise le formulaire de modification
+                            $('#editUserModal').modal('hide'); // Ferme la modale de modification
+                            alert('Utilisateur modifié avec succès !'); // Affiche une alerte de succès
+                        },
+                        error: function() { // Fonction de rappel exécutée en cas d'échec de la requête
+                            alert('Échec de la modification de l\'utilisateur'); // Affiche une alerte d'échec
+                        }
+                    });
+                } else {
+                    alert('Veuillez remplir tous les champs'); // Affiche une alerte si certains champs sont vides
+                }
+            });
+
+            // Exemple d'appel de la fonction openEditUserModal
+            // Assurez-vous que la variable `users` est définie et contient les données nécessaires
+            // openEditUserModal(0); // Exemple pour ouvrir la modale pour le premier utilisateur
+        });
+
+    
+        const closeAddModalDynamic = () => {
+            $('#dynamicModal').modal('hide');
+            $('#dynamicForm')[0].reset();
+        };
+    
+        const closeEditModalDynamic = () => {
+            $('#editModalDynamic').modal('hide');
+        };
+    
+        const updateRowDynamic = () => {
+            const id = $('#editIdDynamic').val();
+            const name = $('#editNameDynamic').val();
+            const email = $('#editEmailDynamic').val();
+            const gender = $('#editGenderDynamic').val();
+            const workerType = $('#editWorkerTypeDynamic').val();
+            const birthdate = $('#editBirthdateDynamic').val();
+            const station = $('#editStationDynamic').val();
+            const governorate = $('#editGovernorateDynamic').val();
+            const cin = $('#editCINDynamic').val();
+            const profilePictureFile = $('#editProfilePictureDynamic').prop('files')[0];
+    
+            if (id && name && email && gender && workerType && birthdate && station && governorate && cin) {
+                if (profilePictureFile) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const profilePictureUrl = reader.result;
+                        const updatedUser = { id, name, email, gender, workerType, birthdate, station, governorate, cin, profile_picture: profilePictureUrl };
+                        users[editIndex] = updatedUser;
+                        renderTableDynamic('users');
+                        closeEditModalDynamic();
+                        showMessageDynamic('editMessageDynamic', 'User updated successfully!', true);
+                    };
+                    reader.readAsDataURL(profilePictureFile);
+                } else {
+                    const updatedUser = { id, name, email, gender, workerType, birthdate, station, governorate, cin, profile_picture: users[editIndex].profile_picture };
+                    users[editIndex] = updatedUser;
+                    renderTableDynamic('users');
+                    closeEditModalDynamic();
+                    showMessageDynamic('editMessageDynamic', 'User updated successfully!', true);
+                }
+            } else {
+                showMessageDynamic('editMessageDynamic', 'Please fill out all fields!', false);
+            }
+        };
+    
+        // Section Management
+        // ------------------
+        const showSection = (sectionId) => {
+            $('.section-content').hide();
+            $(`#${sectionId}`).show();
+            if (sectionId === 'usersSection') {
+                fetchUsers();
+            } else if (sectionId === 'governoratesSection') {
+                fetchGovernorates();
+            } else if (sectionId === 'stationsSection') {
+                fetchStations();
+            }
+        };
+    
+        // Initialize the page with users section
+        $(document).ready(function() {
+            showSection('usersSection');
         });
 
 
 
 
-        // JavaScript pour la prévisualisation de l'image téléchargée
-        document.getElementById('profile_picture').onchange = function (e) {
-            var imagePreview = document.getElementById('imagePreview');
-            imagePreview.src = URL.createObjectURL(e.target.files[0]);
-            imagePreview.hidden = false;
-            imagePreview.onload = function () {
-                URL.revokeObjectURL(imagePreview.src) // Pour libérer l'objet créé
-            };
-        };
 
-        
 
-        
+
+
+        const openEditStationModal = (index) => {
+    const station = stations[index];
+    $('#editStationId').val(station.id);
+    $('#editStationName').val(station.name);
+    $('#currentStationName').text(station.name); // Afficher le nom actuel
+    $('#currentStationGovernorate').text(station.governorate_name); // Afficher le gouvernorat actuel
+    $('#editStationGovernorate').val(station.governorate_id); // Sélectionner le gouvernorat actuel
+    $('#editStationModal').modal('show');
+};
+
+
+
+const openEditUserModal = (index) => {
+    const user = users[index];
+    $('#editUserId').val(user.id);
+    $('#editUserName').val(user.name);
+    $('#editUserEmail').val(user.email);
+    $('#currentUserName').text(user.name); // Afficher le nom actuel
+    $('#currentUserEmail').text(user.email); // Afficher l'email actuel
+    $('#editUserGender').val(user.gender);
+    $('#editUserWorkerType').val(user.worker_type);
+    $('#editUserBirthdate').val(user.birthdate);
+    $('#editUserStation').val(user.station_id);
+    $('#editUserGovernorate').val(user.governorate_id);
+    $('#editUserCIN').val(user.cin);
+    $('#editUserModal').modal('show');
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </script>
+    
+        
 </body>
 </html>

@@ -241,26 +241,125 @@ def delete_user(user_id):
     except Exception as e:
         logging.error(f'Error deleting user: {e}')
         return jsonify({'error': str(e)}), 500
-
     
+@app.route('/delete_governorate/<int:id>', methods=['DELETE'])
+def delete_governorate(id):
+    try:
+        governorate = Governorate.query.get(id)
+        if governorate:
+            db.session.delete(governorate)
+            db.session.commit()
+            return jsonify({"message": "Governorate deleted successfully!"}), 200
+        else:
+            return jsonify({"error": "Governorate not found!"}), 404
+    except Exception as e:
+        logging.error(f"Error deleting governorate: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/delete_station/<int:id>', methods=['DELETE'])
+def delete_station(id):
+    try:
+        station = Station.query.get(id)
+        if station:
+            db.session.delete(station)
+            db.session.commit()
+            return jsonify({"message": "Station deleted successfully!"}), 200
+        else:
+            return jsonify({"error": "Station not found!"}), 404
+    except Exception as e:
+        logging.error(f"Error deleting station: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/update_governorate/<int:id>', methods=['PUT'])
+def update_governorate(id):
+    try:
+        data = request.get_json()
+        governorate = Governorate.query.get(id)
+        if governorate:
+            governorate.name = data['name']
+            db.session.commit()
+            return jsonify({"message": "Gouvernorat modifié avec succès !"}), 200
+        else:
+            return jsonify({"error": "Gouvernorat non trouvé !"}), 404
+    except Exception as e:
+        logging.error(f"Erreur lors de la modification du gouvernorat : {e}")
+        return jsonify({"error": str(e)}), 500
+@app.route('/update_station/<int:id>', methods=['PUT'])
+def update_station(id):
+    try:
+        data = request.get_json()
+        station = Station.query.get(id)
+        if station:
+            station.name = data['name']
+            station.governorate_id = data['governorate_id']
+            db.session.commit()
+            return jsonify({"message": "Station modifiée avec succès !"}), 200
+        else:
+            return jsonify({"error": "Station non trouvée !"}), 404
+    except Exception as e:
+        logging.error(f"Erreur lors de la modification de la station : {e}")
+        return jsonify({"error": str(e)}), 500
+@app.route('/update_user/<int:id>', methods=['PUT'])
+def update_user(id):
+    try:
+        data = request.get_json()
+        user = User1.query.get(id)
+        if user:
+            user.name = data['name']
+            user.email = data['email']
+            user.gender = data['gender']
+            user.worker_type = data['worker_type']
+            user.birthdate = data['birthdate']
+            user.station_id = data['station_id']
+            user.governorate_id = data['governorate_id']
+            user.cin = data['cin']
+            db.session.commit()
+            return jsonify({"message": "Utilisateur modifié avec succès !"}), 200
+        else:
+            return jsonify({"error": "Utilisateur non trouvé !"}), 404
+    except Exception as e:
+        logging.error(f"Erreur lors de la modification de l'utilisateur : {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+# Routes for Governorates
+@app.route('/get_governorates', methods=['GET'])
+def get_governorates():
+    try:
+        governorates = Governorate.query.all()
+        governorate_list = [{'id': gov.id, 'name': gov.name} for gov in governorates]
+        return jsonify(governorate_list)
+    except Exception as e:
+        logging.error(f'Error fetching governorates: {e}')
+        return jsonify({'error': str(e)}), 500    
+@app.route('/get_stations', methods=['GET'])
+def get_stations():
+    try:
+        stations = Station.query.all()
+        station_list = [{'id': station.id, 'name': station.name, 'governorate_id': station.governorate_id} for station in stations]
+        return jsonify(station_list)
+    except Exception as e:
+        logging.error(f'Error fetching stations: {e}')
+        return jsonify({'error': str(e)}), 500
 
 
 
 
-@app.route('/')
-def home():
-    return redirect(url_for('login'))
+
 
 @app.route('/test')
 def test():
-    gouvernorates = Governorate.query.all()
-    print(gouvernorates,'hhhhhhhhhhhhhhh')
-    return render_template('test.html', governorates=gouvernorates)
+
+    return render_template('test.html')
 
 
 @app.route('/user')
 def user():
     return render_template('user.html')
+
+@app.route('/governorates')
+def governorates():
+    return render_template('governorates.html')
 
 @app.route('/PowerBiDash')
 def PowerBiDash():
@@ -268,46 +367,12 @@ def PowerBiDash():
 
 
 
-@app.route('/ajoutUser', methods=['GET', 'POST'])
+@app.route('/ajoutUser')
 def ajoutUser():
-    if request.method == 'POST':
-        try:
-            # Hacher le mot de passe
-
-            hashed_password = generate_password_hash(request.form['password'])
-
-            
-
-            new_user = Users(
-                name=request.form['name'],
-                email=request.form['email'],
-                gender=request.form['gender'],
-                worker_type=request.form['worker_type'],
-                birthdate=request.form['birthdate'],
-                station=request.form['station'],
-                password_hash=hashed_password,
-                profile_picture= None  # Stocker le chemin du fichier s'il est présent
-            )
-            db.session.add(new_user)
-            db.session.commit()
-            flash('Utilisateur ajouté avec succès!', 'success')
-        except IntegrityError as e:  # Attrape l'erreur d'intégrité de SQLAlchemy
-            db.session.rollback()
-            if 'Duplicate entry' in str(e.orig):
-                flash('Cette adresse email est déjà utilisée. Veuillez en utiliser une autre.', 'error')
-            else:
-                flash('Une erreur est survenue lors de l ajout de l utilisateur.', 'error')
-        except MySQLIntegrityError as e:  # Attrape l'erreur d'intégrité spécifique à MySQL
-            db.session.rollback()
-            if '1062' in str(e):
-                flash('Cette adresse email est déjà utilisée. Veuillez en utiliser une autre.', 'error')
-            else:
-                flash('Une erreur est survenue lors de l ajout de l utilisateur.', 'error')
-        except Exception as e:
-            db.session.rollback()
-            flash('Une erreur est survenue lors de la jout de l utilisateur.', 'error')
-        return redirect(url_for('ajoutUser'))
-    return render_template('ajoutUser.html')
+    gouvernorates = Governorate.query.all()
+    stations=Station.query.all()
+    #print(gouvernorates,'hhhhhhhhhhhhhhh')
+    return render_template('ajoutUser.html', governorates=gouvernorates,stations=stations)
     
 @app.route('/total_zone')
 def total_zone():
@@ -370,7 +435,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         
-        user1 = User.query.filter_by(username=username).first()
+        user1 = User1.query.filter_by(name=username).first()
         if user1 and check_password_hash(user1.password_hash, password):
             session['username'] = username
             # Redirect to the protected dashboard
