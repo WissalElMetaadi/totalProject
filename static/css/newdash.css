@@ -330,13 +330,14 @@
             transition: transform 0.3s ease;
             width: 400px;
             height: 350px;
+            background-color: none !important;
         }
         
         .chart-container:hover {
             transform: scale(1.05);
         }
         .chart-container-green:hover {
-            transform: scale(1.01);
+            transform: scale(1.05);
         }
         
         
@@ -344,10 +345,10 @@
         
         #vehiclesHourChart {
             flex: 1;
-            background: linear-gradient(to right, #e6e6fa, #ffffff);
+            
             border-radius: 10px;
-            width: 100% !important;
-            height: 100% !important;
+            width:90% !important;
+            height: 85% !important;
         }
         
         
@@ -358,7 +359,7 @@
         }
         .chart-container-green {
             background-color: #73d060; /* Green background */
-            padding: 20px;
+            padding: 25px;
             border-radius: 10px;
             color: #fff; /* White text color */
         }
