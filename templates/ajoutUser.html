@@ -376,21 +376,23 @@
             display: flex;
             gap: 10px; /* Ajoute un espace entre les boutons */
         }
+        
     </style>
 </head>
 <body>
     <div class="wrapper">
-        <nav class="sidebar">
+       <nav class="sidebar">
             <div class="sidebar-header">
                 <img src="{{ url_for('static', filename='images/Arriere-plan.png') }}" alt="TotalEnergies" class="logo">
             </div>
             <ul class="sidebar-menu">
-                <li class="sidebar-item active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-upload"></i> Upload Data</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-coffee"></i> Coffee Shop</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-map"></i> Total Zone</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-map-marked-alt"></i> Maps</a></li>
+                <li class="sidebar-item active"><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('charts_jour') }}"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('DragAndDrop') }}"><i class="fas fa-upload"></i> Upload Data</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('dashboard') }}"><i class="fas fa-coffee"></i> Coffe shop</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('dashboard') }}"><i class="fas fa-map"></i> Total Zone</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('data_table') }}"><i class="fas fa-map-marked-alt"></i> Maps</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('ajoutUser') }}"><i class="fas fa-map-marked-alt"></i> Gestion D'utilisateurs</a></li>
             </ul>
         </nav>
         <div class="main-content">

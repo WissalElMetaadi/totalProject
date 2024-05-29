@@ -1,3 +1,86 @@
+$(document).ready(function() {
+    let lastCheckTime = Date.now();
+
+    function updateNotification(messages) {
+        console.log("Updating notifications:", messages);
+        const notificationMessages = $('#notificationMessages');
+        const viewDetailsButton = $('#viewDetailsButton');
+
+        notificationMessages.empty();
+
+        messages.forEach(message => {
+            const notificationElement = $('<p>').addClass('tnc-stat-value').text(message.text);
+            notificationMessages.append(notificationElement);
+        });
+
+        if (messages.length > 0) {
+            viewDetailsButton.show();
+            viewDetailsButton.data('users', messages.map(msg => msg.user));
+        } else {
+            viewDetailsButton.hide();
+        }
+    }
+
+    $('#viewDetailsButton').click(function() {
+        const users = $(this).data('users');
+        const userDetailsBody = $('#userDetailsBody');
+        userDetailsBody.empty();
+
+        users.forEach(user => {
+            const userDetails = `
+                <p><strong>Nom:</strong> ${user.name}</p>
+                <p><strong>Email:</strong> ${user.email}</p>
+                <p><strong>Genre:</strong> ${user.gender}</p>
+                <p><strong>Type de Travailleur:</strong> ${user.worker_type}</p>
+                <p><strong>Date de Naissance:</strong> ${user.birthdate}</p>
+                <p><strong>Station:</strong> ${user.station_id}</p>
+                <p><strong>Gouvernorat:</strong> ${user.governorate_id}</p>
+                <p><strong>CIN:</strong> ${user.cin}</p>
+                <hr>
+            `;
+            userDetailsBody.append(userDetails);
+        });
+
+        openModal();
+    });
+
+    function fetchRecentUsers() {
+        console.log('Fetching recent users');
+        $.ajax({
+            type: 'GET',
+            url: '/get_recent_users',
+            data: { since: lastCheckTime / 1000 },
+            success: function(users) {
+                console.log('Recent users:', users);
+                if (users.length > 0) {
+                    const messages = users.map(user => ({
+                        text: `Nouveau ${user.worker_type} ajouté à ${user.station_id} (${user.governorate_id})`,
+                        user: user
+                    }));
+                    updateNotification(messages);
+                    lastCheckTime = Date.now(); // Update the last check time
+                } else {
+                    console.log("No new users found.");
+                }
+            },
+            error: function(response) {
+                console.error('Failed to fetch recent users', response);
+            }
+        });
+    }
+
+    setInterval(fetchRecentUsers, 5000);
+});
+
+function openModal() {
+    const modal = document.getElementById('userDetailsModal');
+    modal.classList.add('show');
+}
+
+function closeModal() {
+    const modal = document.getElementById('userDetailsModal');
+    modal.classList.remove('show');
+}
 // Met à jour le titre de la station avec les valeurs de la région et de l'identifiant de station
 function updateTitle() {
     var governorate = document.getElementById('governorate').value;

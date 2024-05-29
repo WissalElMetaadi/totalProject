@@ -23,6 +23,10 @@ import time
 from flask import url_for 
 import webbrowser #//Pour ouvrir une URL dans le navigateur par défaut.
 import threading # Pour exécuter l'ouverture du navigateur après le démarrage du serveur Flask.
+from datetime import datetime
+import pytz
+
+
 
 """ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Utilisez la base de données que vous souhaitez
@@ -44,15 +48,8 @@ app.config['SQLALCHEMY_BINDS'] = {
 
 db = SQLAlchemy(app)
 
+migrate = Migrate(app, db)
 
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-
-    def __repr__(self):
-        return '<User %r>' % self.username
 
 
 
@@ -94,6 +91,8 @@ class User1(db.Model):
     cin = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     profile_picture = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Africa/Tunis')))
+
 
     def __repr__(self):
         return f'<User1 {self.name}>'
@@ -130,6 +129,41 @@ class Users(db.Model):
     profile_picture = db.Column(db.LargeBinary)
     def __repr__(self):
         return '<Users %r>' % self.name
+
+@app.route('/get_recent_users', methods=['GET'])
+def get_recent_users():
+    try:
+        logging.info("Fetching recent users.")
+        since_timestamp = request.args.get('since')
+        if since_timestamp:
+            logging.debug(f"Filtering users added since {since_timestamp}")
+            since_time = datetime.fromtimestamp(float(since_timestamp), pytz.timezone('Africa/Tunis'))
+            recent_users = User1.query.filter(User1.created_at > since_time).all()
+        else:
+            logging.debug("No timestamp provided, fetching all users.")
+            recent_users = User1.query.all()
+
+        users_data = [
+            {
+                'id': user.id,
+                'name': user.name,
+                'email': user.email,
+                'gender': user.gender,
+                'worker_type': user.worker_type,
+                'birthdate': user.birthdate.strftime('%Y-%m-%d'),
+                'station_id': user.station_id,
+                'governorate_id': user.governorate_id,
+                'cin': user.cin,
+                'created_at': user.created_at.timestamp()
+            } for user in recent_users
+        ]
+
+        logging.info(f"Number of recent users found: {len(users_data)}")
+        return jsonify(users_data)
+    except Exception as e:
+        logging.error(f"Error fetching recent users: {e}")
+        return jsonify({'error': 'Failed to fetch recent users.'}), 500
+
 
 
 @app.route('/add_governorate', methods=['POST'])

@@ -727,3 +727,127 @@
     margin-top: 5px;
     color: #000;
 }
+
+
+
+
+.tnc-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.tnc-mt-5 {
+    margin-top: 3rem;
+}
+.tnc-positive {
+    color: green;
+}
+.tnc-negative {
+    color: red;
+}
+.tnc-stat-card {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.tnc-icon-bg {
+    margin-right: 50px;
+    
+}
+.tnc-stat-details {
+    flex-grow: 1;
+}
+.tnc-btn-info {
+    margin-top: 10px;
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.tnc-btn-info:hover {
+    background-color: #138496;
+}
+.tnc-modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    outline: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.tnc-modal.show {
+    display: flex;
+    opacity: 1;
+}
+.tnc-modal-dialog {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    margin: 10px;
+    pointer-events: auto;
+}
+.tnc-modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 0.3rem;
+    outline: 0;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: slide-in 0.3s ease-out;
+}
+.tnc-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #064482;
+}
+.tnc-modal-title {
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+.tnc-close {
+    padding: 1rem;
+    margin: -1rem -1rem -1rem auto;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+.tnc-modal-body {
+    position: relative;
+    padding: 1rem;
+}
+
+@keyframes slide-in {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
