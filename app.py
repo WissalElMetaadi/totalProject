@@ -25,6 +25,7 @@ import webbrowser #//Pour ouvrir une URL dans le navigateur par défaut.
 import threading # Pour exécuter l'ouverture du navigateur après le démarrage du serveur Flask.
 from datetime import datetime
 import pytz
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 
 
 
@@ -50,7 +51,8 @@ db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
 
-
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
 
 with app.app_context():
@@ -96,7 +98,18 @@ class User1(db.Model):
 
     def __repr__(self):
         return f'<User1 {self.name}>'
-    
+    # Methods required by Flask-Login
+    def is_active(self):
+        return True
+
+    def is_authenticated(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
     
 
 class Vehicule(db.Model):
@@ -129,7 +142,9 @@ class Users(db.Model):
     profile_picture = db.Column(db.LargeBinary)
     def __repr__(self):
         return '<Users %r>' % self.name
-
+@login_manager.user_loader
+def load_user(user_id):
+    return User1.query.get(int(user_id))
 @app.route('/get_recent_users', methods=['GET'])
 def get_recent_users():
     try:
@@ -387,9 +402,13 @@ def test():
     return render_template('test.html')
 
 
-@app.route('/user')
-def user():
-    return render_template('user.html')
+@app.route('/interface_user', methods=['GET'])
+@login_required
+def interface_user():
+    if current_user.worker_type != 'Simple User':
+        return redirect(url_for('dashboard'))
+    return render_template('interface_user.html')
+
 
 @app.route('/governorates')
 def governorates():
@@ -465,18 +484,27 @@ def list_users():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error_message = None
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
-        user1 = User1.query.filter_by(name=username).first()
-        if user1 and check_password_hash(user1.password_hash, password):
+        user = User1.query.filter_by(name=username).first()
+        if user and check_password_hash(user.password_hash, password):
+            login_user(user)
             session['username'] = username
-            # Redirect to the protected dashboard
-            return redirect(url_for('dashboard'))
+            session['user_role'] = user.worker_type
+            # Redirection basée sur le rôle de l'utilisateur
+            if user.worker_type == 'Simple User':
+                return redirect(url_for('interface_user'))
+            else:
+                return redirect(url_for('dashboard'))
         else:
-            flash('Invalid username or password')
-    return render_template('login.html')
+            error_message = 'Nom d\'utilisateur ou mot de passe incorrect.'
+
+    return render_template('login.html', error_message=error_message)
+
+
 @app.route('/logout')
 def logout():
     # Supprime 'username' de la session
@@ -485,11 +513,17 @@ def logout():
 
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
+    if current_user.worker_type == 'Simple User':
+        return redirect(url_for('interface_user'))
     data = read_excel('DATA.xlsx')  # Modifiez le chemin relatif ici
     if 'username' not in session:
         return redirect(url_for('login'))
     return render_template('dashboard.html', data=data)
+
+
+
 
 def read_excel(file_name):
     # Utilisez un chemin relatif ou configurez correctement le chemin absolu
