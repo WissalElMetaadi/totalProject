@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/newdash.css') }}">
+
+    
+</head>
+<body>
+    <div class="wrapper">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='images/Arriere-plan.png') }}" alt="TotalEnergies" class="logo">
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item "><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('charts_jour') }}"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('DragAndDrop') }}"><i class="fas fa-upload"></i> Upload Data</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('dashboard') }}"><i class="fas fa-coffee"></i> Coffe shop</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('PowerBiDash') }}"><i class="fas fa-map"></i> Vision BI</a></li>
+                <li class="sidebar-item active"><a href="{{ url_for('streamlite') }}"><i class="fas fa-map-marked-alt"></i> Rapports</a></li>
+                <li class="sidebar-item"><a href="{{ url_for('ajoutUser') }}"><i class="fas fa-map-marked-alt"></i> Gestion D'utilisateurs</a></li>
+            </ul>
+        </nav>
+        <div class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <h1>DASHBOARD</h1>
+                    <p>ANALYSE DES DONNEES</p>
+                </div>
+                <div class="station-title" id="station-title">
+                    <!-- Le titre mis à jour apparaîtra ici -->
+                </div>
+                <div class="header-icons">
+                    <i class="fas fa-bell"></i>
+                    <div class="profile-pic">
+                        <img src="{{ url_for('static', filename='images/Calque2.png') }}" alt="Profile">
+                    </div>
+                </div>
+            </header>
+            <div class="content">
+                <div class="top-container">
+                    <div class="dropdown-container">
+                        <div class="dropdown-group">
+                            <label for="governorate">GOUVERNORAT</label>
+                                <select id="governorate" name="governorate" onchange="updateTitle()">
+                                    <option value="Grand Tunis">GRAND TUNIS</option>
+                                    <option value="Ariana">ARIANA</option>
+                                    <option value="Bizerte">BIZERTE</option>
+                                    <!-- Ajoutez d'autres options ici -->
+                                </select>
+                            </div>
+                            <div class="dropdown-group">
+                                <label for="station-id">ID STATION</label>
+                                <select id="station-id" name="station-id" onchange="updateTitle()">
+                                    <option value="Total N9-03">TOTAL N9-03</option>
+                                    <option value="Total N8-01">TOTAL N8-01</option>
+                                    <option value="Total S5-04">TOTAL S5-04</option>
+                                    <!-- Ajoutez d'autres options ici -->
+                                </select>
+                        </div>
+                    </div></div>
+          <iframe src="http://localhost:8501" width="100%" height="800"></iframe> 
+
+            
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>     
+</body>
+</html>

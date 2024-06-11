@@ -1,3 +1,49 @@
+
+
+$(document).ready(function() {
+    function updateNotification(message, user) {
+        const notificationMessage = $('#notificationMessage');
+        const viewDetailsButton = $('#viewDetailsButton');
+        
+        notificationMessage.text(message);
+        viewDetailsButton.show();
+        
+        // Store user details in the button for later use
+        viewDetailsButton.data('user', user);
+    }
+
+    $('#viewDetailsButton').click(function() {
+        const user = $(this).data('user');
+        const userDetailsBody = $('#userDetailsBody');
+        
+        // Fill modal with user details
+        userDetailsBody.html(`
+            <p><strong>Nom:</strong> ${user.name}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Genre:</strong> ${user.gender}</p>
+            <p><strong>Type de Travailleur:</strong> ${user.worker_type}</p>
+            <p><strong>Date de Naissance:</strong> ${user.birthdate}</p>
+            <p><strong>Station:</strong> ${user.station_id}</p>
+            <p><strong>Gouvernorat:</strong> ${user.governorate_id}</p>
+            <p><strong>CIN:</strong> ${user.cin}</p>
+        `);
+    });
+
+    // Simulate adding a user and updating the notification
+    setTimeout(() => {
+        const newUser = {
+            name: 'John Doe',
+            email: 'john@example.com',
+            gender: 'male',
+            worker_type: 'global_admin',
+            birthdate: '1985-05-15',
+            station_id: 'Station 1',
+            governorate_id: 'Tunis',
+            cin: '12345678'
+        };
+        updateNotification(`Nouveau ${newUser.worker_type} ajouté à ${newUser.station_id} (${newUser.governorate_id})`, newUser);
+    }, 1000);
+});
 $(document).ready(function() {
     let lastCheckTime = Date.now();
 
@@ -104,7 +150,7 @@ $(document).ready(function() {
         });
 
         // Ajustement de la largeur du conteneur de la table après initialisation
-        $('.dataTables_wrapper').css('width', '100%');
+        $('.dataTables_wrapper').css('width', '70%');
 
         // Événement de clic pour ouvrir des images en popup
         $('#example tbody').on('click', 'td a.image-link', function(e) {
@@ -216,32 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
 });
 
-// Initialisation de la carte
-function initializeMap() {
-    var tunisie = [36.83, 10.3];
-    var map = L.map('mapid').setView(tunisie, 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
 
-    var marker = L.marker(tunisie).addTo(map);
-    marker.bindPopup("<b>Tunisie</b>").openPopup();
-
-    // Nouvelles coordonnées pour les nouvelles places
-    var place1Coords = [37.04, 9.67];
-    var place2Coords = [34.88, 10.60];
-    var place3Coords = [33.87, 10.04];
-
-    // Ajout des marqueurs pour les nouvelles places
-    var markerPlace1 = L.marker(place1Coords).addTo(map);
-    markerPlace1.bindPopup("<b>Bizerte</b>").openPopup();
-
-    var markerPlace2 = L.marker(place2Coords).addTo(map);
-    markerPlace2.bindPopup("<b>Sfax</b>").openPopup();
-
-    var markerPlace3 = L.marker(place3Coords).addTo(map);
-    markerPlace3.bindPopup("<b>Gabes</b>").openPopup();
-}
 //##############################################################################
 // Supposons que myVehicleChart est la référence globale à votre graphique
 var myVehicleChart = null;

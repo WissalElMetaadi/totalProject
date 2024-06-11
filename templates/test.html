@@ -1,252 +1,198 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Notification Container</title>
+    <title>Dashboard avec Carte Leaflet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .tnc-container {
-            max-width: 1140px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .tnc-mt-5 {
-            margin-top: 3rem;
-        }
-        .tnc-positive {
+        .positive {
             color: green;
         }
-        .tnc-negative {
+        .negative {
             color: red;
         }
-        .tnc-stat-card {
+        .stat-card {
             border: 1px solid #ddd;
             padding: 20px;
             margin-bottom: 20px;
             border-radius: 5px;
             display: flex;
             align-items: center;
-            background-color: #f9f9f9;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .tnc-icon-bg {
+        .icon-bg {
             margin-right: 15px;
         }
-        .tnc-stat-details {
+        .stat-details {
             flex-grow: 1;
         }
-        .tnc-btn-info {
+        .btn-info {
             margin-top: 10px;
-            background-color: #17a2b8;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
         }
-        .tnc-btn-info:hover {
-            background-color: #138496;
-        }
-        .tnc-modal {
-            display: none;
-            position: fixed;
-            z-index: 1050;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            outline: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .tnc-modal.show {
-            display: flex;
-            opacity: 1;
-        }
-        .tnc-modal-dialog {
-            position: relative;
-            width: 90%;
-            max-width: 600px;
-            margin: 10px;
-            pointer-events: auto;
-        }
-        .tnc-modal-content {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            pointer-events: auto;
-            background-color: #fff;
-            background-clip: padding-box;
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            border-radius: 0.3rem;
-            outline: 0;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            animation: slide-in 0.3s ease-out;
-        }
-        .tnc-modal-header {
+        .flex-container {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid #064482;
         }
-        .tnc-modal-title {
-            margin-bottom: 0;
-            line-height: 1.5;
+        .flex-item {
+            flex: 1;
+            margin: 10px;
         }
-        .tnc-close {
-            padding: 1rem;
-            margin: -1rem -1rem -1rem auto;
-            background: none;
-            border: 0;
-            cursor: pointer;
-            font-size: 1.5rem;
-        }
-        .tnc-modal-body {
-            position: relative;
-            padding: 1rem;
-        }
-
-        @keyframes slide-in {
-            from {
-                transform: translateY(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        #map {
+            height: 500px; /* Ajuster la hauteur selon vos besoins */
+            width: 100%;
         }
     </style>
 </head>
 <body>
-
-<div class="tnc-container tnc-mt-5">
-    <h1>Test Notification Container</h1>
-    <div class="tnc-stat-card" id="notificationCard">
-        <div class="tnc-icon-bg">
-            <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Clients Icon">
-        </div>
-        <div class="tnc-stat-details">
-            <h3>Notifications et Alertes</h3>
-            <div id="notificationMessages">
-                <p class="tnc-stat-value">Aucune notification pour le moment.</p>
+    <div class="wrapper">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <img src="path/to/your/logo.png" alt="Logo" class="logo">
             </div>
-            <button class="tnc-btn-info" id="viewDetailsButton" style="display: none;" onclick="openModal()">Voir les détails</button>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-upload"></i> Upload Data</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-coffee"></i> Coffee Shop</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-map"></i> Vision BI</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-map-marked-alt"></i> Rapports</a></li>
+                <li class="sidebar-item"><a href="#"><i class="fas fa-user"></i> Gestion Utilisateurs</a></li>
+            </ul>
+        </nav>
+
+        <div class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <h1>DASHBOARD</h1>
+                    <p>ANALYSE DES DONNÉES</p>
+                </div>
+                <div class="station-title" id="station-title"></div>
+                <div class="header-icons">
+                    <i class="fas fa-bell"></i>
+                    <div class="profile-pic">
+                        <img src="path/to/your/profile-image.png" alt="Profile">
+                    </div>
+                </div>
+            </header>
+            <div class="content">
+                <h1>Daily Statics</h1>
+                <div class="container-charts">
+                    <div class="chart-container-green">
+                        <h2 class="chart-title-green">Top Fidèles Clients</h2>
+                        <div id="pyramid-chart-container" class="green-chart">
+                            <!-- Place your chart content here -->
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h2 class="chart-title">Nombre Total de Véhicules par Heure</h2>
+                        <canvas id="vehiclesHourChart"></canvas>
+                    </div>
+                </div>
+                <div id="filters">
+                    <label for="type-filter">Station Area:
+                        <select id="type-filter">
+                            <option value="">Tous</option>
+                            <option value="Entrée">Entrée</option>
+                            <option value="Sortie">Sortie</option>
+                            <option value="Pompes">Pompes</option>
+                            <option value="Air">Air</option>
+                            <option value="Lavage">Lavage</option>
+                        </select>
+                    </label>
+                    <label for="date-filter">Date:
+                        <input type="date" id="date-filter">
+                    </label>
+                    <button id='button-id'>Filtrer</button>
+                </div>
+
+                <div class="flex-container">
+                    <div class="flex-item">
+                        <div class="dashboard-container">
+                            <table id="example" class="display">
+                                <thead>
+                                    <tr>
+                                        <th>track_id</th>
+                                        <th>class</th>
+                                        <th>license_plate_text</th>
+                                        <th>score LP</th>
+                                        <th>pompes_info</th>
+                                        <th>date d'entrée</th>
+                                        <th>date de sortie</th>
+                                        <th>wait_time</th>
+                                        <th>Image du véhicule</th>
+                                        <th>Image de la plaque</th>
+                                        <th>TotalZone</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Example rows, replace with your data rendering -->
+                                    <tr>
+                                        <td><a href="#" class="track-info" data-track-id="1">1</a></td>
+                                        <td>Car</td>
+                                        <td>ABC123</td>
+                                        <td>98%</td>
+                                        <td>Pump 1</td>
+                                        <td>2024-06-10 12:34:56</td>
+                                        <td>2024-06-10 12:45:56</td>
+                                        <td>11 minutes</td>
+                                        <td><a href="#" onclick="openImageWindow('path/to/car-image.jpg');">Voir Image du véhicule</a></td>
+                                        <td><a href="#" onclick="openImageWindow('path/to/license-plate-image.jpg');">Voir Image de la plaque</a></td>
+                                        <td>Zone 1</td>
+                                    </tr>
+                                    <!-- More rows as needed -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="flex-item">
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+                <div id="detailsModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2>Détails de la Piste</h2>
+                        <div class="modal-body">
+                            <div class="modal-info">
+                                <p><b>Track ID:</b> <span id="modalTrackId"></span></p>
+                                <p><b>Class:</b> <span id="modalClass"></span></p>
+                                <p><b>LP Text:</b> <span id="modalLPText"></span></p>
+                                <p><b>Score LP:</b> <span id="modalScoreLP"></span></p>
+                                <p><b>Date d'entrée:</b> <span id="modalEntryDate"></span></p>
+                                <p><b>Date de sortie:</b> <span id="modalExitDate"></span></p>
+                                <p><b>Wait Time:</b> <span id="modalWaitTime"></span></p>
+                            </div>
+                            <div class="modal-images">
+                                <p><b>Image du véhicule:</b></p>
+                                <img id="modalCarImage" src="" alt="Image du véhicule" style="max-width:100%; height:auto;">
+                                <p><b>Image de la plaque:</b></p>
+                                <img id="modalPlateImage" src="" alt="Image de la plaque" style="max-width:100%; height:auto;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Modale pour afficher les détails de l'utilisateur -->
-<div class="tnc-modal" id="userDetailsModal">
-    <div class="tnc-modal-dialog">
-        <div class="tnc-modal-content">
-            <div class="tnc-modal-header">
-                <h5 class="tnc-modal-title">Détails de l'Utilisateur</h5>
-                <button type="button" class="tnc-close" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="tnc-modal-body" id="userDetailsBody">
-                <!-- Détails de l'utilisateur à remplir dynamiquement -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script>
-$(document).ready(function() {
-    let lastCheckTime = Date.now();
-
-    function updateNotification(messages) {
-        console.log("Updating notifications:", messages);
-        const notificationMessages = $('#notificationMessages');
-        const viewDetailsButton = $('#viewDetailsButton');
-
-        notificationMessages.empty();
-
-        messages.forEach(message => {
-            const notificationElement = $('<p>').addClass('tnc-stat-value').text(message.text);
-            notificationMessages.append(notificationElement);
+    <!-- JavaScript includes -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#example').DataTable();
         });
 
-        if (messages.length > 0) {
-            viewDetailsButton.show();
-            viewDetailsButton.data('users', messages.map(msg => msg.user));
-        } else {
-            viewDetailsButton.hide();
-        }
-    }
-
-    $('#viewDetailsButton').click(function() {
-        const users = $(this).data('users');
-        const userDetailsBody = $('#userDetailsBody');
-        userDetailsBody.empty();
-
-        users.forEach(user => {
-            const userDetails = `
-                <p><strong>Nom:</strong> ${user.name}</p>
-                <p><strong>Email:</strong> ${user.email}</p>
-                <p><strong>Genre:</strong> ${user.gender}</p>
-                <p><strong>Type de Travailleur:</strong> ${user.worker_type}</p>
-                <p><strong>Date de Naissance:</strong> ${user.birthdate}</p>
-                <p><strong>Station:</strong> ${user.station_id}</p>
-                <p><strong>Gouvernorat:</strong> ${user.governorate_id}</p>
-                <p><strong>CIN:</strong> ${user.cin}</p>
-                <hr>
-            `;
-            userDetailsBody.append(userDetails);
-        });
-
-        openModal();
-    });
-
-    function fetchRecentUsers() {
-        console.log('Fetching recent users');
-        $.ajax({
-            type: 'GET',
-            url: '/get_recent_users',
-            data: { since: lastCheckTime / 1000 },
-            success: function(users) {
-                console.log('Recent users:', users);
-                if (users.length > 0) {
-                    const messages = users.map(user => ({
-                        text: `Nouveau ${user.worker_type} ajouté à ${user.station_id} (${user.governorate_id})`,
-                        user: user
-                    }));
-                    updateNotification(messages);
-                    lastCheckTime = Date.now(); // Update the last check time
-                } else {
-                    console.log("No new users found.");
-                }
-            },
-            error: function(response) {
-                console.error('Failed to fetch recent users', response);
-            }
-        });
-    }
-
-    setInterval(fetchRecentUsers, 5000);
-});
-
-function openModal() {
-    const modal = document.getElementById('userDetailsModal');
-    modal.classList.add('show');
-}
-
-function closeModal() {
-    const modal = document.getElementById('userDetailsModal');
-    modal.classList.remove('show');
-}
-</script>
+        // Initialisation de la carte
+        var map = L.map('map').setView([33.8869, 9.5375], 6); // Coordonnées de la Tunisie
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+    </script>
 </body>
 </html>
