@@ -6,6 +6,9 @@
     <title>Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    
+
 
     <!-- Stylesheets -->
         
@@ -29,29 +32,45 @@
         <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/newdash.css') }}">
         <style>
-            .positive {
-                color: green;
+          .sentiment-pie {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 2px 0px #333);
+        }
+        .sentiment-data-path:hover {
+            cursor: pointer;
+        }
+        .sentiment-data-text {
+            transition: transform .2s ease-in-out;
+            fill: #fff;
+        }
+        .sentiment-data-text__value {
+            font-size: 7rem;
+            transform: translateY(-.5rem);
+            opacity: 0;
+        }
+        .sentiment-data-text__name {
+            font-size: 2rem;
+            transform: translateY(.5rem);
+            opacity: 0;
+        }
+        .sentiment-data-text--show {
+            transform: translateY(0);
+            animation: fadeSentimentTextIn .5s forwards;
+        }
+        .sentiment-legend-text {
+            fill: #fff;
+        }
+        @keyframes fadeSentimentTextIn {
+            from {
+                opacity: 0;
             }
-            .negative {
-                color: red;
+            to {
+                opacity: 1;
             }
-            .stat-card {
-                border: 1px solid #ddd;
-                padding: 20px;
-                margin-bottom: 20px;
-                border-radius: 5px;
-                display: flex;
-                align-items: center;
-            }
-            .icon-bg {
-                margin-right: 15px;
-            }
-            .stat-details {
-                flex-grow: 1;
-            }
-            .btn-info {
-                margin-top: 10px;
-            }
+        }
         </style>
 </head>
 <body>
@@ -157,13 +176,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="icon-bg"><img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Clients Icon"></div>
-                        <div class="stat-details">
-                            <h3>Notifications et Alertes</h3>
-                            <p class="stat-value">Pompe 9 est vide <span class="percentage negative">-2%</span></p>
-                        </div>
-                    </div>
+                    <h1>Sentiment Analysis Dashboard</h1>
+                    <div id="sentiment-chart" class="sentiment-pie"></div>
                 </div>
                 
                                
@@ -359,10 +373,147 @@
     
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}">
+ const sentimentPieData = [
+            {name: 'Positive', value: {{ sentiment_counts.get('positive', 0) }}, color: '#18FFFF'},
+            {name: 'Negative', value: {{ sentiment_counts.get('negative', 0) }}, color: '#0288D1'},
+            {name: 'Neutral', value: {{ sentiment_counts.get('neutral', 0) }}, color: '#BF360C'}
+        ];
+        bakeSentimentDonut(sentimentPieData);
 
+        function bakeSentimentDonut(data) {
+            let activeSegment;
+            const sortedData = data.sort((a, b) => b['value'] - a['value']),
+                viewWidth = 500,
+                viewHeight = 300,
+                svgWidth = viewHeight,
+                svgHeight = viewHeight,
+                thickness = 40,
+                colorArray = sortedData.map(k => k.color),
+                el = d3.select('body'),
+                radius = Math.min(svgWidth, svgHeight) / 2,
+                color = d3.scaleOrdinal().range(colorArray);
 
+            const max = d3.max(sortedData, (d) => d.value);
 
+            const svg = el.append('svg')
+                .attr('viewBox', `0 0 ${viewWidth + thickness} ${viewHeight + thickness}`)
+                .attr('class', 'sentiment-pie')
+                .attr('width', viewWidth)
+                .attr('height', svgHeight);
 
+            const g = svg.append('g')
+                .attr('transform', `translate(${(svgWidth / 2) + (thickness / 2)}, ${(svgHeight / 2) + (thickness / 2)})`);
+
+            const arc = d3.arc()
+                .innerRadius(radius - thickness)
+                .outerRadius(radius);
+
+            const arcHover = d3.arc()
+                .innerRadius(radius - (thickness + 5))
+                .outerRadius(radius + 8);
+
+            const pie = d3.pie()
+                .value(function (d) { return d.value; })
+                .sort(null);
+
+            const path = g.selectAll('path')
+                .attr('class', 'sentiment-data-path')
+                .data(pie(sortedData))
+                .enter()
+                .append('g')
+                .attr('class', 'sentiment-data-group')
+                .each(function (pathData) {
+                    const group = d3.select(this);
+
+                    group.append('text')
+                        .text(`${pathData.data.value}`)
+                        .attr('class', 'sentiment-data-text sentiment-data-text__value')
+                        .attr('text-anchor', 'middle')
+                        .attr('dy', '1rem');
+
+                    group.append('text')
+                        .text(`${pathData.data.name}`)
+                        .attr('class', 'sentiment-data-text sentiment-data-text__name')
+                        .attr('text-anchor', 'middle')
+                        .attr('dy', '3.5rem');
+
+                    // Set default active segment
+                    if (pathData.value === max) {
+                        const textVal = d3.select(this).select('.sentiment-data-text__value')
+                            .classed('sentiment-data-text--show', true);
+
+                        const textName = d3.select(this).select('.sentiment-data-text__name')
+                            .classed('sentiment-data-text--show', true);
+                    }
+
+                })
+                .append('path')
+                .attr('d', arc)
+                .attr('fill', (d) => color(d.data.name))
+                .attr('class', 'sentiment-data-path')
+                .on('mouseover', function () {
+                    const _thisPath = this,
+                        parentNode = _thisPath.parentNode;
+
+                    if (_thisPath !== activeSegment) {
+
+                        activeSegment = _thisPath;
+
+                        d3.selectAll('.sentiment-data-text')
+                            .classed('sentiment-data-text--show', false);
+
+                        d3.selectAll('.sentiment-data-path')
+                            .transition()
+                            .duration(250)
+                            .attr('d', arc);
+
+                        d3.select(_thisPath)
+                            .transition()
+                            .duration(250)
+                            .attr('d', arcHover);
+
+                        d3.select(parentNode).select('.sentiment-data-text__value')
+                            .classed('sentiment-data-text--show', true);
+                        d3.select(parentNode).select('.sentiment-data-text__name')
+                            .classed('sentiment-data-text--show', true);
+                    }
+
+                })
+                .each(function (d) {
+                    if (d.value === max) {
+                        d3.select(this)
+                            .attr('d', arcHover);
+                        activeSegment = this;
+                    }
+                    this._current = d;
+                });
+
+            const legendRectSize = 15;
+            const legendSpacing = 10;
+
+            const legend = svg.selectAll('.sentiment-legend')
+                .data(color.domain())
+                .enter()
+                .append('g')
+                .attr('class', 'sentiment-legend')
+                .attr('transform', function (d, i) {
+                    const itemHeight = legendRectSize + legendSpacing;
+                    const offset = legendRectSize * color.domain().length;
+                    const horz = svgWidth + 80;
+                    const vert = (i * itemHeight) + legendRectSize + (svgHeight - offset) / 2;
+                    return `translate(${horz}, ${vert})`;
+                });
+
+            legend.append('circle')
+                .attr('r', legendRectSize / 2)
+                .style('fill', color);
+
+            legend.append('text')
+                .attr('x', legendRectSize + legendSpacing)
+                .attr('y', legendRectSize - legendSpacing)
+                .attr('class', 'sentiment-legend-text')
+                .text((d) => d);
+        }
 </script>
 </body>
 </html>

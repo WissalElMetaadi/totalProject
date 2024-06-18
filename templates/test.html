@@ -1,198 +1,204 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard avec Carte Leaflet</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <title>Sentiment Analysis Dashboard</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
     <style>
-        .positive {
-            color: green;
-        }
-        .negative {
-            color: red;
-        }
-        .stat-card {
-            border: 1px solid #ddd;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 5px;
+        html, body {
+            height: 100%;
             display: flex;
-            align-items: center;
         }
-        .icon-bg {
-            margin-right: 15px;
+        body {
+            background: linear-gradient(to bottom, #606c88 0%, #3f4c6b 100%);
+            font-family: 'Source Sans Pro', sans-serif;
         }
-        .stat-details {
-            flex-grow: 1;
+        .sentiment-pie {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 2px 0px #333);
         }
-        .btn-info {
-            margin-top: 10px;
+        .sentiment-data-path:hover {
+            cursor: pointer;
         }
-        .flex-container {
-            display: flex;
-            justify-content: space-between;
+        .sentiment-data-text {
+            transition: transform .2s ease-in-out;
+            fill: #fff;
         }
-        .flex-item {
-            flex: 1;
-            margin: 10px;
+        .sentiment-data-text__value {
+            font-size: 7rem;
+            transform: translateY(-.5rem);
+            opacity: 0;
         }
-        #map {
-            height: 500px; /* Ajuster la hauteur selon vos besoins */
-            width: 100%;
+        .sentiment-data-text__name {
+            font-size: 2rem;
+            transform: translateY(.5rem);
+            opacity: 0;
+        }
+        .sentiment-data-text--show {
+            transform: translateY(0);
+            animation: fadeSentimentTextIn .5s forwards;
+        }
+        .sentiment-legend-text {
+            fill: #fff;
+        }
+        @keyframes fadeSentimentTextIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <img src="path/to/your/logo.png" alt="Logo" class="logo">
-            </div>
-            <ul class="sidebar-menu">
-                <li class="sidebar-item active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-upload"></i> Upload Data</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-coffee"></i> Coffee Shop</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-map"></i> Vision BI</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-map-marked-alt"></i> Rapports</a></li>
-                <li class="sidebar-item"><a href="#"><i class="fas fa-user"></i> Gestion Utilisateurs</a></li>
-            </ul>
-        </nav>
-
-        <div class="main-content">
-            <header class="header">
-                <div class="header-content">
-                    <h1>DASHBOARD</h1>
-                    <p>ANALYSE DES DONNÉES</p>
-                </div>
-                <div class="station-title" id="station-title"></div>
-                <div class="header-icons">
-                    <i class="fas fa-bell"></i>
-                    <div class="profile-pic">
-                        <img src="path/to/your/profile-image.png" alt="Profile">
-                    </div>
-                </div>
-            </header>
-            <div class="content">
-                <h1>Daily Statics</h1>
-                <div class="container-charts">
-                    <div class="chart-container-green">
-                        <h2 class="chart-title-green">Top Fidèles Clients</h2>
-                        <div id="pyramid-chart-container" class="green-chart">
-                            <!-- Place your chart content here -->
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <h2 class="chart-title">Nombre Total de Véhicules par Heure</h2>
-                        <canvas id="vehiclesHourChart"></canvas>
-                    </div>
-                </div>
-                <div id="filters">
-                    <label for="type-filter">Station Area:
-                        <select id="type-filter">
-                            <option value="">Tous</option>
-                            <option value="Entrée">Entrée</option>
-                            <option value="Sortie">Sortie</option>
-                            <option value="Pompes">Pompes</option>
-                            <option value="Air">Air</option>
-                            <option value="Lavage">Lavage</option>
-                        </select>
-                    </label>
-                    <label for="date-filter">Date:
-                        <input type="date" id="date-filter">
-                    </label>
-                    <button id='button-id'>Filtrer</button>
-                </div>
-
-                <div class="flex-container">
-                    <div class="flex-item">
-                        <div class="dashboard-container">
-                            <table id="example" class="display">
-                                <thead>
-                                    <tr>
-                                        <th>track_id</th>
-                                        <th>class</th>
-                                        <th>license_plate_text</th>
-                                        <th>score LP</th>
-                                        <th>pompes_info</th>
-                                        <th>date d'entrée</th>
-                                        <th>date de sortie</th>
-                                        <th>wait_time</th>
-                                        <th>Image du véhicule</th>
-                                        <th>Image de la plaque</th>
-                                        <th>TotalZone</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Example rows, replace with your data rendering -->
-                                    <tr>
-                                        <td><a href="#" class="track-info" data-track-id="1">1</a></td>
-                                        <td>Car</td>
-                                        <td>ABC123</td>
-                                        <td>98%</td>
-                                        <td>Pump 1</td>
-                                        <td>2024-06-10 12:34:56</td>
-                                        <td>2024-06-10 12:45:56</td>
-                                        <td>11 minutes</td>
-                                        <td><a href="#" onclick="openImageWindow('path/to/car-image.jpg');">Voir Image du véhicule</a></td>
-                                        <td><a href="#" onclick="openImageWindow('path/to/license-plate-image.jpg');">Voir Image de la plaque</a></td>
-                                        <td>Zone 1</td>
-                                    </tr>
-                                    <!-- More rows as needed -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="flex-item">
-                        <div id="map"></div>
-                    </div>
-                </div>
-
-                <div id="detailsModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h2>Détails de la Piste</h2>
-                        <div class="modal-body">
-                            <div class="modal-info">
-                                <p><b>Track ID:</b> <span id="modalTrackId"></span></p>
-                                <p><b>Class:</b> <span id="modalClass"></span></p>
-                                <p><b>LP Text:</b> <span id="modalLPText"></span></p>
-                                <p><b>Score LP:</b> <span id="modalScoreLP"></span></p>
-                                <p><b>Date d'entrée:</b> <span id="modalEntryDate"></span></p>
-                                <p><b>Date de sortie:</b> <span id="modalExitDate"></span></p>
-                                <p><b>Wait Time:</b> <span id="modalWaitTime"></span></p>
-                            </div>
-                            <div class="modal-images">
-                                <p><b>Image du véhicule:</b></p>
-                                <img id="modalCarImage" src="" alt="Image du véhicule" style="max-width:100%; height:auto;">
-                                <p><b>Image de la plaque:</b></p>
-                                <img id="modalPlateImage" src="" alt="Image de la plaque" style="max-width:100%; height:auto;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript includes -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <h1>Sentiment Analysis Dashboard</h1>
+    <div id="sentiment-chart" class="sentiment-pie"></div>
     <script>
-        $(document).ready(function() {
-            $('#example').DataTable();
-        });
+        const sentimentPieData = [
+            {name: 'Positive', value: {{ sentiment_counts.get('positive', 0) }}, color: '#18FFFF'},
+            {name: 'Negative', value: {{ sentiment_counts.get('negative', 0) }}, color: '#0288D1'},
+            {name: 'Neutral', value: {{ sentiment_counts.get('neutral', 0) }}, color: '#BF360C'}
+        ];
+        bakeSentimentDonut(sentimentPieData);
 
-        // Initialisation de la carte
-        var map = L.map('map').setView([33.8869, 9.5375], 6); // Coordonnées de la Tunisie
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+        function bakeSentimentDonut(data) {
+            let activeSegment;
+            const sortedData = data.sort((a, b) => b['value'] - a['value']),
+                viewWidth = 500,
+                viewHeight = 300,
+                svgWidth = viewHeight,
+                svgHeight = viewHeight,
+                thickness = 40,
+                colorArray = sortedData.map(k => k.color),
+                el = d3.select('body'),
+                radius = Math.min(svgWidth, svgHeight) / 2,
+                color = d3.scaleOrdinal().range(colorArray);
+
+            const max = d3.max(sortedData, (d) => d.value);
+
+            const svg = el.append('svg')
+                .attr('viewBox', `0 0 ${viewWidth + thickness} ${viewHeight + thickness}`)
+                .attr('class', 'sentiment-pie')
+                .attr('width', viewWidth)
+                .attr('height', svgHeight);
+
+            const g = svg.append('g')
+                .attr('transform', `translate(${(svgWidth / 2) + (thickness / 2)}, ${(svgHeight / 2) + (thickness / 2)})`);
+
+            const arc = d3.arc()
+                .innerRadius(radius - thickness)
+                .outerRadius(radius);
+
+            const arcHover = d3.arc()
+                .innerRadius(radius - (thickness + 5))
+                .outerRadius(radius + 8);
+
+            const pie = d3.pie()
+                .value(function (d) { return d.value; })
+                .sort(null);
+
+            const path = g.selectAll('path')
+                .attr('class', 'sentiment-data-path')
+                .data(pie(sortedData))
+                .enter()
+                .append('g')
+                .attr('class', 'sentiment-data-group')
+                .each(function (pathData) {
+                    const group = d3.select(this);
+
+                    group.append('text')
+                        .text(`${pathData.data.value}`)
+                        .attr('class', 'sentiment-data-text sentiment-data-text__value')
+                        .attr('text-anchor', 'middle')
+                        .attr('dy', '1rem');
+
+                    group.append('text')
+                        .text(`${pathData.data.name}`)
+                        .attr('class', 'sentiment-data-text sentiment-data-text__name')
+                        .attr('text-anchor', 'middle')
+                        .attr('dy', '3.5rem');
+
+                    // Set default active segment
+                    if (pathData.value === max) {
+                        const textVal = d3.select(this).select('.sentiment-data-text__value')
+                            .classed('sentiment-data-text--show', true);
+
+                        const textName = d3.select(this).select('.sentiment-data-text__name')
+                            .classed('sentiment-data-text--show', true);
+                    }
+
+                })
+                .append('path')
+                .attr('d', arc)
+                .attr('fill', (d) => color(d.data.name))
+                .attr('class', 'sentiment-data-path')
+                .on('mouseover', function () {
+                    const _thisPath = this,
+                        parentNode = _thisPath.parentNode;
+
+                    if (_thisPath !== activeSegment) {
+
+                        activeSegment = _thisPath;
+
+                        d3.selectAll('.sentiment-data-text')
+                            .classed('sentiment-data-text--show', false);
+
+                        d3.selectAll('.sentiment-data-path')
+                            .transition()
+                            .duration(250)
+                            .attr('d', arc);
+
+                        d3.select(_thisPath)
+                            .transition()
+                            .duration(250)
+                            .attr('d', arcHover);
+
+                        d3.select(parentNode).select('.sentiment-data-text__value')
+                            .classed('sentiment-data-text--show', true);
+                        d3.select(parentNode).select('.sentiment-data-text__name')
+                            .classed('sentiment-data-text--show', true);
+                    }
+
+                })
+                .each(function (d) {
+                    if (d.value === max) {
+                        d3.select(this)
+                            .attr('d', arcHover);
+                        activeSegment = this;
+                    }
+                    this._current = d;
+                });
+
+            const legendRectSize = 15;
+            const legendSpacing = 10;
+
+            const legend = svg.selectAll('.sentiment-legend')
+                .data(color.domain())
+                .enter()
+                .append('g')
+                .attr('class', 'sentiment-legend')
+                .attr('transform', function (d, i) {
+                    const itemHeight = legendRectSize + legendSpacing;
+                    const offset = legendRectSize * color.domain().length;
+                    const horz = svgWidth + 80;
+                    const vert = (i * itemHeight) + legendRectSize + (svgHeight - offset) / 2;
+                    return `translate(${horz}, ${vert})`;
+                });
+
+            legend.append('circle')
+                .attr('r', legendRectSize / 2)
+                .style('fill', color);
+
+            legend.append('text')
+                .attr('x', legendRectSize + legendSpacing)
+                .attr('y', legendRectSize - legendSpacing)
+                .attr('class', 'sentiment-legend-text')
+                .text((d) => d);
+        }
     </script>
 </body>
 </html>

@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pandas as pd
+from bson.objectid import ObjectId
 import csv
 import os ,cv2 ,io
 import numpy as np
@@ -26,150 +27,72 @@ import threading # Pour exécuter l'ouverture du navigateur après le démarrage
 from datetime import datetime
 import pytz
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
-
-
-
-""" app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Utilisez la base de données que vous souhaitez
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app) """
-
+from flask_pymongo import PyMongo
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:JEONjungkook123@localhost/totalbd'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:JEONjungkook123@localhost/totalbd'
+app.config['MONGO_URI'] = 'mongodb://localhost:27017/station_total'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = r'C:\Users\Utilisateur\Desktop\projet_flask\uploads'
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 100 MB limit
-app.config['SQLALCHEMY_BINDS'] = {
-    'secondary_db': 'mysql+mysqlconnector://root:JEONjungkook123@localhost/station_total'
-}
 
-db = SQLAlchemy(app)
 
-migrate = Migrate(app, db)
+mongo = PyMongo(app)
+
+
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-
-with app.app_context():
-    db.create_all()
-    
-class Station(db.Model):
-    __bind_key__ = 'secondary_db'
-    __tablename__ = 'stations'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), unique=True, nullable=False)
-    governorate_id = db.Column(db.Integer, db.ForeignKey('governorates.id'), nullable=False)
-
-    def __repr__(self):
-        return f'<Station {self.name}>'
-
-
-class Governorate(db.Model):
-    __bind_key__ = 'secondary_db'
-    __tablename__ = 'governorates'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), unique=True, nullable=False)
-
-    def __repr__(self):
-        return f'<Governorate {self.name}>'
-
-
-class User1(db.Model):
-    __bind_key__ = 'secondary_db'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    gender = db.Column(db.Enum('female', 'male', 'other'), nullable=False)
-    worker_type = db.Column(db.Enum('global_admin', 'governorate_admin', 'station_admin', 
-                                    'Technicien de Maintenance', 'Analyste de Données', 'Simple User'), nullable=False)
-    birthdate = db.Column(db.Date, nullable=False)
-    station_id = db.Column(db.Integer, nullable=False)
-    governorate_id = db.Column(db.Integer, nullable=False)
-    cin = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    profile_picture = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Africa/Tunis')))
-
-
-    def __repr__(self):
-        return f'<User1 {self.name}>'
-    # Methods required by Flask-Login
-    def is_active(self):
-        return True
-
-    def is_authenticated(self):
-        return True
-
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
-        return str(self.id)
-    
-
-class Vehicule(db.Model):
-    __tablename__ = 'vehicules'
-    track_id = db.Column(db.Integer, primary_key=True)
-    classe = db.Column(db.String(255))
-    license_plate_text = db.Column(db.String(255))
-    score = db.Column(db.Float)
-    LP_pompes_info = db.Column(db.String(255))
-    date_entree = db.Column(db.DateTime)
-    date_sortie = db.Column(db.DateTime)
-    wait_time = db.Column(db.Integer)
-    car_image = db.Column(db.String(255))
-    license_plate_image = db.Column(db.String(255))
+class User(UserMixin):
+    def __init__(self, user_id, name, worker_type):
+        self.id = user_id
+        self.name = name
+        self.worker_type = worker_type
 
 
 
 
-class Users(db.Model):
-    __tablename__ = 'Users'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    gender = db.Column(db.String(50), nullable=False)
-    worker_type = db.Column(db.String(255), nullable=False)
-    birthdate = db.Column(db.Date, nullable=False)
-    station = db.Column(db.String(255), nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    profile_picture = db.Column(db.LargeBinary)
-    def __repr__(self):
-        return '<Users %r>' % self.name
 @login_manager.user_loader
 def load_user(user_id):
-    return User1.query.get(int(user_id))
+    try:
+        user_data = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+        if user_data:
+            return User(user_id=str(user_data['_id']), name=user_data['name'], worker_type=user_data['worker_type'])
+    except Exception as e:
+        logging.error(f"Error loading user: {e}")
+    return None
+
+
+
 @app.route('/get_recent_users', methods=['GET'])
 def get_recent_users():
     try:
         logging.info("Fetching recent users.")
         since_timestamp = request.args.get('since')
+        query = {}
         if since_timestamp:
             logging.debug(f"Filtering users added since {since_timestamp}")
             since_time = datetime.fromtimestamp(float(since_timestamp), pytz.timezone('Africa/Tunis'))
-            recent_users = User1.query.filter(User1.created_at > since_time).all()
-        else:
-            logging.debug("No timestamp provided, fetching all users.")
-            recent_users = User1.query.all()
-
+            query['created_at'] = {"$gt": since_time}
+        
+        recent_users = mongo.db.users.find(query)
+        
         users_data = [
             {
-                'id': user.id,
-                'name': user.name,
-                'email': user.email,
-                'gender': user.gender,
-                'worker_type': user.worker_type,
-                'birthdate': user.birthdate.strftime('%Y-%m-%d'),
-                'station_id': user.station_id,
-                'governorate_id': user.governorate_id,
-                'cin': user.cin,
-                'created_at': user.created_at.timestamp()
+                'id': str(user['_id']),
+                'name': user['name'],
+                'email': user['email'],
+                'gender': user.get('gender'),
+                'worker_type': user.get('worker_type'),
+                'birthdate': user.get('birthdate').strftime('%Y-%m-%d') if user.get('birthdate') else None,
+                'station_id': user.get('station_id'),
+                'governorate_id': user.get('governorate_id'),
+                'cin': user.get('cin'),
+                'created_at': user['created_at'].timestamp() if user.get('created_at') else None
             } for user in recent_users
         ]
 
@@ -179,213 +102,245 @@ def get_recent_users():
         logging.error(f"Error fetching recent users: {e}")
         return jsonify({'error': 'Failed to fetch recent users.'}), 500
 
-
-
 @app.route('/add_governorate', methods=['POST'])
 def add_governorate():
     try:
         data = request.get_json()
-        new_governorate = Governorate(name=data['name'])
-        db.session.add(new_governorate)
-        db.session.commit()
+        new_governorate = {
+            "name": data['name']
+        }
+        mongo.db.governorates.insert_one(new_governorate)
         return jsonify({'message': 'Governorate added successfully!'}), 201
     except Exception as e:
         logging.error(f'Error adding governorate: {e}')
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/add_user1', methods=['GET', 'POST'])
+
+@app.route('/add_user1', methods=['POST'])
 def add_user1():
     try:
-        data = request.form
-        logging.debug(f'Received data: {data}')
-        
-        password_hash = generate_password_hash(data['password'])
+        user_data = request.form
+        logging.debug(f'Received data: {user_data}')
+        station_name = user_data.get('station_name')
 
-        new_user1 = User1(
-            name=data['name'],
-            email=data['email'],
-            gender=data['gender'],
-            worker_type=data['worker_type'],
-            birthdate=data['birthdate'],
-            station_id=data['station_id'],
-            governorate_id=data['governorate_id'],
-            cin=data['cin'],
-            password_hash=password_hash,
-            profile_picture=data['profile_picture']
-        )
-        db.session.add(new_user1)
-        db.session.commit()
-        return jsonify({'message': 'User1 added successfully to the secondary database!'}), 201
+        # Log the received station_name
+        app.logger.info(f"Received station_name: {station_name}")
+
+        # Trouver l'ObjectId de la station par son nom
+        station = mongo.db.stations.find_one({'name': station_name})
+        if not station:
+            app.logger.error(f"Station not found for name: {station_name}")
+            return jsonify({'error': 'Station not found'}), 404
+
+        # Hacher le mot de passe et créer le document utilisateur
+        password_hash = generate_password_hash(user_data['password'])
+        new_user = {
+            'name': user_data['name'],
+            'email': user_data['email'],
+            'gender': user_data['gender'],
+            'worker_type': user_data['worker_type'],
+            'birthdate': user_data['birthdate'],
+            'station_id': station['_id'],  # Utiliser l'ObjectId de la station
+            'cin': user_data['cin'],
+            'password_hash': password_hash,
+            'profile_picture': user_data.get('profile_picture', 'default.jpg')
+        }
+        mongo.db.users.insert_one(new_user)
+        app.logger.info("User added successfully")
+        return jsonify({'message': 'User added successfully!'}), 201
+
     except Exception as e:
-        logging.error(f'Error adding user1: {e}')
+        app.logger.error(f"Exception occurred: {e}")
         return jsonify({'error': str(e)}), 500
-    
+
+
 @app.route('/get_users1', methods=['GET'])
 def get_users1():
     try:
-        users = User1.query.all()
+        users = mongo.db.users.find()
         user_list = []
         for user in users:
             user_data = {
-                'id': user.id,
-                'name': user.name,
-                'email': user.email,
-                'gender': user.gender,
-                'worker_type': user.worker_type,
-                'birthdate': user.birthdate.strftime('%Y-%m-%d'),
-                'station_id': user.station_id,
-                'governorate_id': user.governorate_id,
-                'cin': user.cin,
-                'profile_picture': user.profile_picture
+                'id': str(user['_id']),
+                'name': user['name'],
+                'email': user['email'],
+                'gender': user['gender'],
+                'worker_type': user['worker_type'],
+                'birthdate': user['birthdate'],
+                'station_id': str(user['station_id']) if user.get('station_id') else None,  # Handle ObjectId
+                'cin': user['cin'],
+                'profile_picture': user['profile_picture']
             }
             user_list.append(user_data)
         return jsonify(user_list)
     except Exception as e:
         logging.error(f'Error fetching users1: {e}')
         return jsonify({'error': str(e)}), 500
+
 @app.route('/add_station', methods=['POST'])
 def add_station():
     try:
-        data = request.get_json()
-        logging.debug(f'Received data for new station: {data}')  # Log the received data
-        print(data,'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
-        if not data:
-            logging.error('No data received')
-            return jsonify({'error': 'No data received'}), 400
-        if 'name' not in data or 'governorate_id' not in data:
-            logging.error('Incomplete data received')
-            return jsonify({'error': 'Incomplete data received'}), 400
+        data = request.json
+        # Assurez-vous que le nom de la station et le nom du gouvernorat sont fournis
+        if 'name' not in data or 'governorate_name' not in data:
+            return jsonify({'error': 'Missing station name or governorate name'}), 400
 
-        
-        # Verify that the governorate_id exists
-        governorate = Governorate.query.filter_by(name=data['governorate_id']).first()
-
+        # Trouver l'ObjectId correspondant au nom du gouvernorat
+        governorate = mongo.db.governorates.find_one({'name': data['governorate_name']})
         if not governorate:
-            logging.error(f'Governorate ID {data["governorate_id"]} does not exist')
-            return jsonify({'error': 'Invalid governorate_id'}), 400
-        
-        governorate_id = governorate.id  # Extract the ID of the governorate
-        new_station = Station(name=data['name'], governorate_id=governorate_id)
-        db.session.add(new_station)
-        db.session.commit()
-        logging.debug(f'Station added: {new_station}')
-        return jsonify({'message': 'Station added successfully!'}), 201
-    except Exception as e:
-        logging.error(f'Error adding station: {e}')
-        return jsonify({'error': str(e)}), 500
-    
+            return jsonify({'error': 'Governorate not found'}), 404
 
-@app.route('/delete_user/<int:user_id>', methods=['DELETE'])
+        # Création de la station avec l'ObjectId du gouvernorat
+        new_station = {
+            'name': data['name'],
+            'governorate_id': governorate['_id']  # Utilisation de l'ObjectId du gouvernorat trouvé
+        }
+        mongo.db.stations.insert_one(new_station)
+        return jsonify({'message': 'Station added successfully'}), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+from bson.objectid import ObjectId
+
+@app.route('/delete_user/<string:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    print(user_id, 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
     try:
-        user = User1.query.get(user_id)
-        if not user:
+        result = mongo.db.users.delete_one({"_id": ObjectId(user_id)})
+        if result.deleted_count == 0:
             return jsonify({'error': 'User not found'}), 404
-        
-        db.session.delete(user)
-        db.session.commit()
         return jsonify({'message': 'User deleted successfully!'}), 200
     except Exception as e:
         logging.error(f'Error deleting user: {e}')
         return jsonify({'error': str(e)}), 500
-    
-@app.route('/delete_governorate/<int:id>', methods=['DELETE'])
+
+@app.route('/delete_governorate/<string:id>', methods=['DELETE'])
 def delete_governorate(id):
     try:
-        governorate = Governorate.query.get(id)
-        if governorate:
-            db.session.delete(governorate)
-            db.session.commit()
-            return jsonify({"message": "Governorate deleted successfully!"}), 200
-        else:
-            return jsonify({"error": "Governorate not found!"}), 404
+        result = mongo.db.governorates.delete_one({"_id": ObjectId(id)})
+        if result.deleted_count == 0:
+            return jsonify({'error': 'Governorate not found'}), 404
+        return jsonify({'message': 'Governorate deleted successfully!'}), 200
     except Exception as e:
-        logging.error(f"Error deleting governorate: {e}")
-        return jsonify({"error": str(e)}), 500
+        logging.error(f'Error deleting governorate: {e}')
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/delete_station/<int:id>', methods=['DELETE'])
+@app.route('/delete_station/<string:id>', methods=['DELETE'])
 def delete_station(id):
     try:
-        station = Station.query.get(id)
-        if station:
-            db.session.delete(station)
-            db.session.commit()
-            return jsonify({"message": "Station deleted successfully!"}), 200
-        else:
-            return jsonify({"error": "Station not found!"}), 404
+        result = mongo.db.stations.delete_one({"_id": ObjectId(id)})
+        if result.deleted_count == 0:
+            return jsonify({'error': 'Station not found'}), 404
+        return jsonify({'message': 'Station deleted successfully!'}), 200
     except Exception as e:
-        logging.error(f"Error deleting station: {e}")
-        return jsonify({"error": str(e)}), 500
-    
-@app.route('/update_governorate/<int:id>', methods=['PUT'])
+        logging.error(f'Error deleting station: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+
+@app.route('/update_governorate/<string:id>', methods=['PUT'])
 def update_governorate(id):
     try:
         data = request.get_json()
-        governorate = Governorate.query.get(id)
+
+        governorate = mongo.db.governorates.find_one({"_id": ObjectId(id)})
         if governorate:
-            governorate.name = data['name']
-            db.session.commit()
-            return jsonify({"message": "Gouvernorat modifié avec succès !"}), 200
+            mongo.db.governorates.update_one(
+                {"_id": ObjectId(id)},
+                {"$set": {"name": data['name']}}
+            )
+            return jsonify({"message": "Governorate updated successfully!"}), 200
         else:
-            return jsonify({"error": "Gouvernorat non trouvé !"}), 404
+            return jsonify({"error": "Governorate not found!"}), 404
     except Exception as e:
-        logging.error(f"Erreur lors de la modification du gouvernorat : {e}")
+        logging.error(f"Error updating governorate: {e}")
         return jsonify({"error": str(e)}), 500
-@app.route('/update_station/<int:id>', methods=['PUT'])
+
+@app.route('/update_station/<string:id>', methods=['PUT'])
 def update_station(id):
     try:
         data = request.get_json()
-        station = Station.query.get(id)
-        if station:
-            station.name = data['name']
-            station.governorate_id = data['governorate_id']
-            db.session.commit()
-            return jsonify({"message": "Station modifiée avec succès !"}), 200
-        else:
-            return jsonify({"error": "Station non trouvée !"}), 404
+        station = mongo.db.stations.find_one({"_id": ObjectId(id)})
+        if not station:
+            return jsonify({"error": "Station not found!"}), 404
+
+        # Recherche de l'ObjectId du gouvernorat par son nom
+        governorate = mongo.db.governorates.find_one({"name": data['governorate_name']})
+        if not governorate:
+            return jsonify({"error": "Governorate not found"}), 404
+
+        # Mise à jour de la station avec le nouvel ObjectId du gouvernorat
+        mongo.db.stations.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {
+                "name": data['name'],
+                "governorate_id": governorate['_id']
+            }}
+        )
+        return jsonify({"message": "Station updated successfully!"}), 200
     except Exception as e:
-        logging.error(f"Erreur lors de la modification de la station : {e}")
         return jsonify({"error": str(e)}), 500
-@app.route('/update_user/<int:id>', methods=['PUT'])
+
+@app.route('/update_user/<string:id>', methods=['PUT'])
 def update_user(id):
     try:
         data = request.get_json()
-        user = User1.query.get(id)
-        if user:
-            user.name = data['name']
-            user.email = data['email']
-            user.gender = data['gender']
-            user.worker_type = data['worker_type']
-            user.birthdate = data['birthdate']
-            user.station_id = data['station_id']
-            user.governorate_id = data['governorate_id']
-            user.cin = data['cin']
-            db.session.commit()
-            return jsonify({"message": "Utilisateur modifié avec succès !"}), 200
-        else:
-            return jsonify({"error": "Utilisateur non trouvé !"}), 404
+        user = mongo.db.users.find_one({"_id": ObjectId(id)})
+        if not user:
+            return jsonify({"error": "User not found!"}), 404
+
+        # Trouver l'ObjectId de la station par son nom
+        station = mongo.db.stations.find_one({'name': data['station_name']})
+        if not station:
+            return jsonify({'error': 'Station not found'}), 404
+
+        # Mise à jour de l'utilisateur avec le nouvel ObjectId de la station
+        mongo.db.users.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {
+                "name": data['name'],
+                "email": data['email'],
+                "gender": data['gender'],
+                "worker_type": data['worker_type'],
+                "birthdate": data['birthdate'],
+                "station_id": station['_id'],
+                "cin": data['cin']
+            }}
+        )
+        return jsonify({"message": "User updated successfully!"}), 200
     except Exception as e:
-        logging.error(f"Erreur lors de la modification de l'utilisateur : {e}")
         return jsonify({"error": str(e)}), 500
 
 
-# Routes for Governorates
+
 @app.route('/get_governorates', methods=['GET'])
 def get_governorates():
     try:
-        governorates = Governorate.query.all()
-        governorate_list = [{'id': gov.id, 'name': gov.name} for gov in governorates]
+        governorates = mongo.db.governorates.find()
+        governorate_list = [{'id': str(gov['_id']), 'name': gov['name']} for gov in governorates]
         return jsonify(governorate_list)
     except Exception as e:
         logging.error(f'Error fetching governorates: {e}')
-        return jsonify({'error': str(e)}), 500    
+        return jsonify({'error': str(e)}), 500
+  
+
+
 @app.route('/get_stations', methods=['GET'])
 def get_stations():
     try:
-        stations = Station.query.all()
-        station_list = [{'id': station.id, 'name': station.name, 'governorate_id': station.governorate_id} for station in stations]
+        stations = mongo.db.stations.find()
+        station_list = []
+        for station in stations:
+            governorate = mongo.db.governorates.find_one({"_id": station['governorate_id']})
+            station_data = {
+                'id': str(station['_id']),
+                'name': station['name'],
+                'governorate': {
+                    'id': str(governorate['_id']),
+                    'name': governorate['name']
+                }
+            }
+            station_list.append(station_data)
         return jsonify(station_list)
     except Exception as e:
         logging.error(f'Error fetching stations: {e}')
@@ -398,8 +353,12 @@ def get_stations():
 
 @app.route('/test')
 def test():
-
-    return render_template('test.html')
+      # Lire le fichier Excel contenant l'analyse de sentiments
+    df = pd.read_excel('sentiment_analysis.xlsx')
+    
+    # Préparer les données pour les graphiques
+    sentiment_counts = df['stars'].value_counts().to_dict()
+    return render_template('test.html',sentiment_counts=sentiment_counts)
 
 
 @app.route('/interface_user', methods=['GET'])
@@ -422,10 +381,21 @@ def PowerBiDash():
 
 @app.route('/ajoutUser')
 def ajoutUser():
-    gouvernorates = Governorate.query.all()
-    stations=Station.query.all()
-    #print(gouvernorates,'hhhhhhhhhhhhhhh')
-    return render_template('ajoutUser.html', governorates=gouvernorates,stations=stations)
+    try:
+        gouvernorates = list(mongo.db.governorates.find())
+        stations = list(mongo.db.stations.find())
+
+        # Convert ObjectId to string for easier handling in templates
+        for gouvernorate in gouvernorates:
+            gouvernorate['_id'] = str(gouvernorate['_id'])
+        for station in stations:
+            station['_id'] = str(station['_id'])
+
+        return render_template('ajoutUser.html', governorates=gouvernorates, stations=stations)
+    except Exception as e:
+        logging.error(f"Error fetching governorates or stations: {e}")
+        return jsonify({'error': str(e)}), 500
+
     
 @app.route('/total_zone')
 def total_zone():
@@ -489,8 +459,10 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = User1.query.filter_by(name=username).first()
-        if user and check_password_hash(user.password_hash, password):
+        user_data = mongo.db.users.find_one({"name": username})
+        
+        if user_data and check_password_hash(user_data['password_hash'], password):
+            user = User(user_id=str(user_data['_id']), name=user_data['name'], worker_type=user_data['worker_type'])
             login_user(user)
             session['username'] = username
             session['user_role'] = user.worker_type
@@ -512,15 +484,25 @@ def logout():
     return redirect(url_for('login'))
 
 
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
     if current_user.worker_type == 'Simple User':
         return redirect(url_for('interface_user'))
-    data = read_excel('DATA.xlsx')  # Modifiez le chemin relatif ici
+    
     if 'username' not in session:
         return redirect(url_for('login'))
-    return render_template('dashboard.html', data=data)
+
+    # Lire les fichiers Excel
+    data = pd.read_excel('DATA.xlsx')
+    df = pd.read_excel('sentiment_analysis.xlsx')
+    
+    # Préparer les données pour les graphiques
+    sentiment_counts = df['stars'].value_counts().to_dict()
+
+    return render_template('dashboard.html', data=data.to_dict(orient='records'), sentiment_counts=sentiment_counts)
+
 
 
 
@@ -804,7 +786,6 @@ def run_streamlit():
 
 if __name__ == '__main__':
     # Démarrer Streamlit dans un thread séparé
-    threading.Thread(target=run_streamlit).start()
     app.secret_key = 'votre_cle_secrete'
     
     app.run(debug=True, host='0.0.0.0', port=5001,threaded=True)
