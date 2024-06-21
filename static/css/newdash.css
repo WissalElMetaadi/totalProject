@@ -328,16 +328,16 @@
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
-            width: 400px;
-            height: 350px;
+            width: 390px;
+            height: 320px;
             background-color: none !important;
         }
         
         .chart-container:hover {
-            transform: scale(1.05);
+            transform: scale(1.07);
         }
         .chart-container-green:hover {
-            transform: scale(1.05);
+            transform: scale(1.06);
         }
         
         
@@ -359,8 +359,8 @@
         }
         .chart-container-green {
             background-color: #73d060; /* Green background */
-            padding: 25px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 15px;
             color: #fff; /* White text color */
         }
         
@@ -368,8 +368,9 @@
             background-color: #73d060; /* Green background for the chart */
             border: 1px solid #ffffff; /* Slightly darker green border */
             border-radius: 10px;
-            padding: 20px;
+            padding: 10px;
             width: 400px;;
+            
           }
           
           #pyramid-chart-container.green-chart .client-info {
@@ -850,4 +851,41 @@
         transform: translateY(0);
         opacity: 1;
     }
+}
+
+
+.dashboard-container-unique {
+    display: flex;
+    width: 97%;
+    max-width: 1200px;
+    gap: 20px;
+    padding-top: 50px;
+}
+.chart-container-unique, .map-container-unique {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 500px; /* Définir la même hauteur pour les deux sections */
+}
+.chart-container-unique {
+    flex: 0 0 70%; /* 70% de l'espace pour le graphique */
+    background-color: #ffffff; /* Ajouter un fond beige */
+    border: 3px solid #c9fbae; /* Ajouter une bordure colorée */
+    border-radius: 10px; /* Ajouter des coins arrondis */
+    padding: 10px; /* Ajouter du padding pour le contenu */
+    box-sizing: border-box; /* Inclure le padding et la bordure dans les dimensions de l'élément */
+}
+.map-container-unique {
+    flex: 0 0 30%; /* 30% de l'espace pour la carte */
+    border: 3px solid #c9fbae; /* Ajouter une bordure colorée */
+    border-radius: 10px; /* Ajouter des coins arrondis */
+    padding: 10px; /* Ajouter du padding pour le contenu */
+    box-sizing: border-box; /* Inclure le padding et la bordure dans les dimensions de l'élément */
+}
+.chart-canvas-unique, .map-canvas-unique {
+    flex-grow: 1; /* Prendre tout l'espace disponible dans les conteneurs */
+}
+.chart-title-unique, .map-title-unique {
+    text-align: center;
+    margin: 0 0 10px 0; /* Ajouter de l'espace sous les titres */
 }

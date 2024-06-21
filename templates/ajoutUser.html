@@ -493,82 +493,77 @@
             </div>
 
     <!-- Modal pour user -->
-    <!-- Modal -->
-    <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
+<!-- Modal pour user -->
+<div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="addUserModalLabel">Ajouter Utilisateur</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+                <h5 class="modal-title" id="addUserModalLabel">Ajouter Utilisateur</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
-              <form id="addUserForm">
-                  <div class="form-group">
-                      <label for="name">Nom</label>
-                      <input type="text" class="form-control" id="name" name="name" placeholder="Nom" required>
-                  </div>
-                  <div class="form-group">
-                      <label for="email">Email</label>
-                      <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
-                  </div>
-                  <div class="form-group">
-                      <label for="gender">Genre</label>
-                      <select class="form-control custom-select" id="gender" name="gender" required>
-                          <option value="" disabled selected>Choisir Genre</option>
-                          <option value="female">Femme</option>
-                          <option value="male">Homme</option>
-                      </select>
-                  </div>
-                  <div class="form-group">
-                      <label for="worker_type">Type de Travailleur</label>
-                      <select class="form-control" id="worker_type" name="worker_type" required>
-                          <option value="" disabled selected>Choisir Type de Travailleur</option>
-                          <option value="global_admin">Administrateur Global</option>
-                          <option value="governorate_admin">Administrateur Gouvernorat</option>
-                          <option value="station_admin">Administrateur Station</option>
-                          
-                          <option value="Analyste de Données">Analyste de Données</option>
-                          <option value="Simple User">Utilisateur Simple</option>
-                      </select>
-                  </div>
-                  <div class="form-group">
-                      <label for="birthdate">Date de Naissance</label>
-                      <input type="date" class="form-control" id="birthdate" name="birthdate" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="station_id">Nom de la Station</label>
-
-                    <select class="form-control" id="station_id" required>
-                        <option value="" disabled selected>Select gov</option>
-                        {% for station in stations %}
-                        <option value="{{ station.name }}">{{ station.name }}</option>
-                         {% endfor %}
-                    </select>
-                </div>
-
-                
-                
-                  
-                  <div class="form-group">
-                      <label for="cin">CIN</label>
-                      <input type="text" class="form-control" id="cin" name="cin" placeholder="CIN" required>
-                  </div>
-                  <div class="form-group">
-                      <label for="password">Mot de Passe</label>
-                      <input type="password" class="form-control" id="password" name="password" placeholder="Mot de Passe" required>
-                  </div>
-                  <div class="form-group">
-                      <label for="profile_picture">URL de la Photo de Profil</label>
-                      <input type="text" class="form-control" id="profile_picture" name="profile_picture" placeholder="URL de la Photo de Profil" required>
-                  </div>
-                  <button type="button" class="btn btn-primary" id="addUserButton">Ajouter Utilisateur</button>
-              </form>
+                <form id="addUserForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="name">Nom</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Nom" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Genre</label>
+                        <select class="form-control custom-select" id="gender" name="gender" required>
+                            <option value="" disabled selected>Choisir Genre</option>
+                            <option value="female">Femme</option>
+                            <option value="male">Homme</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="worker_type">Type de Travailleur</label>
+                        <select class="form-control" id="worker_type" name="worker_type" required>
+                            <option value="" disabled selected>Choisir Type de Travailleur</option>
+                            <option value="global_admin">Administrateur Global</option>
+                            <option value="governorate_admin">Administrateur Gouvernorat</option>
+                            <option value="station_admin">Administrateur Station</option>
+                            <option value="Analyste de Données">Analyste de Données</option>
+                            <option value="Simple User">Utilisateur Simple</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="birthdate">Date de Naissance</label>
+                        <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="station_id">Nom de la Station</label>
+                        <select class="form-control" id="station_id" name="station_id" required>
+                            <option value="" disabled selected>Select gov</option>
+                            {% for station in stations %}
+                            <option value="{{ station.name }}">{{ station.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cin">CIN</label>
+                        <input type="text" class="form-control" id="cin" name="cin" placeholder="CIN" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Mot de Passe</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Mot de Passe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile_picture">Photo de Profil</label>
+                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="addUserButton">Ajouter Utilisateur</button>
+                </form>
             </div>
-          </div>
         </div>
-      </div>
+    </div>
+</div>
+
 
     <!-- Modale pour ajouter un gouvernorat -->
      <!-- Modale pour ajouter un gouvernorat -->
@@ -875,15 +870,24 @@
                 }
             });
         };
-    
+    // Create a station ID to name map
+    const createStationMap = () => {
+        const stationMap = {};
+        stations.forEach(station => {
+            stationMap[station.id] = station.name;
+        });
+        return stationMap;
+    };
         // Render Users Table
         const renderTableDynamic = (type) => {
-            let tableBody;
-            if (type === 'users') {
-                tableBody = $('#user1TableBody');
-                tableBody.empty();
-                users.forEach((user, index) => {
-                    const row = `
+        let tableBody;
+        if (type === 'users') {
+            const stationMap = createStationMap();
+            tableBody = $('#user1TableBody');
+            tableBody.empty();
+            users.forEach((user, index) => {
+                const stationName = stationMap[user.station_id] || 'N/A';  // Get station name from map
+                const row = `
                         <tr>
                             <td class="id-column">${user.id}</td>
                             <td><img src="${user.profile_picture}" class="profile-picture-dynamic" alt="Profile Picture"></td>
@@ -892,7 +896,7 @@
                             <td>${user.gender}</td>
                             <td>${user.worker_type}</td>
                             <td>${user.birthdate}</td>
-                            <td class="station-column">${user.station_id}</td>
+                            <td class="station-column">${stationName}</td>  <!-- Use station name -->
                             <td>${user.cin}</td>
                             <td class="actions-dynamic">
                                 <button class="edit-btn-dynamic" onclick="openEditUserModal(${index})"><i class="fas fa-edit"></i></button>
@@ -920,17 +924,20 @@
                 tableBody = $('#stationTableBody');
                 tableBody.empty();
                 stations.forEach((station, index) => {
-                    const row = `
-                        <tr>
-                            <td class="id-column">${station.id}</td>
-                            <td>${station.name}</td>
-                            <td>${station.governorate_id}</td>
-                            <td class="actions-dynamic">
-                                <button class="edit-btn-dynamic" onclick="openEditStationModal(${index})"><i class="fas fa-edit"></i></button>
-                                <button class="delete-btn-dynamic" onclick="deleteRowDynamic('${station.id}', ${index}, 'station')"><i class="fas fa-trash-alt"></i></button>
-                            </td>
-                        </tr>`;
-                    tableBody.append(row);
+                    console.log('Processing station:', station);  // Debugging
+                const governorateName = station.governorate.name ? station.governorate.name : 'N/A';
+                console.log('Governorate ID:', station.governorate_id, 'Governorate Name:', governorateName);  // Debugging
+                const row = `
+                    <tr>
+                        <td class="id-column">${station.id}</td>
+                        <td>${station.name}</td>
+                        <td>${governorateName}</td>  <!-- Use governorate name -->
+                        <td class="actions-dynamic">
+                            <button class="edit-btn-dynamic" onclick="openEditStationModal(${index})"><i class="fas fa-edit"></i></button>
+                            <button class="delete-btn-dynamic" onclick="deleteRowDynamic('${station.id}', ${index}, 'station')"><i class="fas fa-trash-alt"></i></button>
+                        </td>
+                    </tr>`;
+                tableBody.append(row);
                 });
             }
         };
@@ -1062,7 +1069,24 @@ window.deleteRowDynamic = (userId, index, type) => {
             });
             renderFilteredTable(type, filteredData, tableBody);
         };
-    
+     // Fonction pour récupérer le nom d'une station par son ID
+     function getStationNameById(station_id, callback) {
+        $.ajax({
+            type: 'GET',
+            url: `/api/station/${station_id}`,
+            success: function(station) {
+                if (station && station.name) {
+                    callback(station.name);
+                } else {
+                    callback('N/A');
+                }
+            },
+            error: function(response) {
+                callback('N/A');
+            }
+        });
+    }
+
         const renderFilteredTable = (type, data, tableBody) => {
             tableBody.empty();
             data.forEach((item, index) => {
@@ -1440,7 +1464,8 @@ $(document).ready(function() {
                 } else {
                     const updatedUser = { id, name, email, gender, workerType, birthdate, station, cin, profile_picture: users[editIndex].profile_picture };
                     users[editIndex] = updatedUser;
-                    renderTableDynamic('users');
+                    
+                    ('users');
                     closeEditModalDynamic();
                     showMessageDynamic('editMessageDynamic', 'User updated successfully!', true);
                 }

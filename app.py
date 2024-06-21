@@ -353,12 +353,14 @@ def get_stations():
 
 @app.route('/test')
 def test():
-      # Lire le fichier Excel contenant l'analyse de sentiments
-    df = pd.read_excel('sentiment_analysis.xlsx')
-    
-    # Préparer les données pour les graphiques
-    sentiment_counts = df['stars'].value_counts().to_dict()
-    return render_template('test.html',sentiment_counts=sentiment_counts)
+    vehicles_collection = mongo.db.sentiment_data
+    pipeline = [
+        {"$group": {"_id": "$stars", "count": {"$sum": 1}}}
+    ]
+    result = list(vehicles_collection.aggregate(pipeline))
+    sentiment_counts = {doc["_id"]: doc["count"] for doc in result}
+    return render_template('test.html', sentiment_counts=sentiment_counts)
+
 
 
 @app.route('/interface_user', methods=['GET'])
@@ -490,18 +492,26 @@ def logout():
 def dashboard():
     if current_user.worker_type == 'Simple User':
         return redirect(url_for('interface_user'))
-    
+
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    # Lire les fichiers Excel
-    data = pd.read_excel('DATA.xlsx')
-    df = pd.read_excel('sentiment_analysis.xlsx')
-    
-    # Préparer les données pour les graphiques
-    sentiment_counts = df['stars'].value_counts().to_dict()
+    vehicles_collection = mongo.db.vehicules
+    data = list(vehicles_collection.find())
+    sentiment_analysis = mongo.db.sentiment_analysis
+    sentiment_data = list(sentiment_analysis.find())
 
-    return render_template('dashboard.html', data=data.to_dict(orient='records'), sentiment_counts=sentiment_counts)
+    sentiment_counts = {}
+    for record in sentiment_data:
+        stars = record.get('stars')
+        if stars:
+            if stars in sentiment_counts:
+                sentiment_counts[stars] += 1
+            else:
+                sentiment_counts[stars] = 1
+
+    return render_template('dashboard.html', data=data, sentiment_counts=sentiment_counts)
+
 
 
 
@@ -515,23 +525,28 @@ def read_excel(file_name):
 
   
 
+from datetime import datetime, timedelta
 
 @app.route('/data_par_heure')
 def data_par_heure():
     date_query = request.args.get('date', None)
-    
-    df = pd.read_excel('DATA.xlsx')
-    
+    vehicles_collection = mongo.db.vehicules
+
+    match_stage = {"$match": {"class": {"$ne": "Worker"}}}
     if date_query:
-        
-        df['date d\'entrée'] = pd.to_datetime(df['date d\'entrée'])
-        df = df[df['date d\'entrée'].dt.strftime('%Y-%m-%d') == date_query]
-    
-    df_filtered = df[df['class'] != 'Worker']
-    df_filtered['hour'] = df_filtered['date d\'entrée'].dt.hour
-    vehicles_per_hour = df_filtered.groupby('hour').size().to_dict()
-    
-    return jsonify({ 'vehicles_per_hour': vehicles_per_hour })
+        date = datetime.strptime(date_query, '%Y-%m-%d')
+        match_stage["$match"]["date d\'entrée"] = {"$gte": date, "$lt": date + timedelta(days=1)}
+
+    pipeline = [
+        match_stage,
+        {"$group": {"_id": {"$hour": "$date d\'entrée"}, "count": {"$sum": 1}}}
+    ]
+    result = list(vehicles_collection.aggregate(pipeline))
+    vehicles_per_hour = {doc["_id"]: doc["count"] for doc in result}
+
+    return jsonify({'vehicles_per_hour': vehicles_per_hour})
+
+
 
 
 
@@ -541,69 +556,83 @@ def data_par_heure():
 @app.route('/avg_wait_time_by_class')
 def get_avg_wait_time_by_class():
     date_query = request.args.get('date', None)
-    
-    # Charger le fichier Excel
-    df = pd.read_excel('DATA.xlsx')
-    
-    if date_query:
-        # Convertir la colonne de date en datetime et filtrer par la date choisie
-        df['date d\'entrée'] = pd.to_datetime(df['date d\'entrée'])
-        df = df[df['date d\'entrée'].dt.strftime('%Y-%m-%d') == date_query]
-    
-    df_filtered = df[df['class'] != 'Worker']
+    vehicles_collection = mongo.db.vehicules
 
-    # Calculer le temps d'attente moyen par classe de véhicules
-    avg_wait_time_by_class = df_filtered.groupby('class')['wait_time'].mean().sort_values().to_dict()
-    
-    # Retourner les données au format JSON
+    match_stage = {"$match": {"class": {"$ne": "Worker"}}}
+    if date_query:
+        date = datetime.strptime(date_query, '%Y-%m-%d')
+        match_stage["$match"]["date d'entrée"] = {"$gte": date, "$lt": date + timedelta(days=1)}
+
+    pipeline = [
+        match_stage,
+        {"$group": {"_id": "$class", "avg_wait_time": {"$avg": "$wait_time"}}}
+    ]
+    result = list(vehicles_collection.aggregate(pipeline))
+    avg_wait_time_by_class = {doc["_id"]: doc["avg_wait_time"] for doc in result}
+
     return jsonify(avg_wait_time_by_class)
+
 
 
 @app.route('/data')
 def data():
-    # Récupérer la date à partir des paramètres de requête
     date_query = request.args.get('date', None)
-    
-    # Charger le fichier Excel
-    df = pd.read_excel('DATA.xlsx')
-    
-    # Convertir la colonne de date en datetime, si ce n'est pas déjà fait
-    df['date d\'entrée'] = pd.to_datetime(df['date d\'entrée'])
-    
-    # Filtrer les données pour la date spécifiée, si une date est fournie
+    vehicles_collection = mongo.db.vehicules
+
+    match_stage = {"$match": {"class": {"$ne": "Worker"}}}
     if date_query:
-        df = df[df['date d\'entrée'].dt.strftime('%Y-%m-%d') == date_query]
-    
-    # Exclure les données de la classe 'Worker'
-    df_filtered = df[df['class'] != 'Worker']
-    
-    # Calculer le nombre de véhicules par classe, à l'exception de 'Worker'
-    vehicle_counts = df_filtered['class'].value_counts().to_dict()
-    
-    # Retourner les données au format JSON
+        date = datetime.strptime(date_query, '%Y-%m-%d')
+        match_stage["$match"]["date d\'entrée"] = {"$gte": date, "$lt": date + timedelta(days=1)}
+
+    pipeline = [
+        match_stage,
+        {"$group": {"_id": "$class", "count": {"$sum": 1}}}
+    ]
+    result = list(vehicles_collection.aggregate(pipeline))
+    vehicle_counts = {doc["_id"]: doc["count"] for doc in result}
+
     return jsonify(vehicle_counts)
 
-
-
+mongo = PyMongo(app)
 @app.route('/pump_data')
 def pump_data():
     # Récupérer la date à partir des paramètres de requête
     date_query = request.args.get('date', None)
     
-    # Charger le fichier Excel
-    df = pd.read_excel('DATA.xlsx')
-    
-    # Convertir la colonne de date en datetime, si ce n'est pas déjà fait
-    if 'date d\'entrée' in df.columns:
-        df['date d\'entrée'] = pd.to_datetime(df['date d\'entrée'])
+    # Utiliser la collection 'vehicles'
+    vehicles_collection = mongo.db.vehicles
 
-    # Filtrer les données pour la date spécifiée, si une date est fournie
+    # Construire la requête MongoDB
+    query = {}
     if date_query:
-        # Assumer que 'date d'entrée' est le nom de votre colonne de date dans le DataFrame
-        df = df[df['date d\'entrée'].dt.strftime('%Y-%m-%d') == date_query]
+        try:
+            # Convertir la date en objet datetime
+            date_query_dt = datetime.strptime(date_query, '%Y-%m-%d')
+            start_date = datetime(date_query_dt.year, date_query_dt.month, date_query_dt.day)
+            end_date = datetime(date_query_dt.year, date_query_dt.month, date_query_dt.day, 23, 59, 59)
+            query['date d\'entrée'] = {'$gte': start_date, '$lte': end_date}
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD."}), 400
+
+    # Interroger MongoDB
+    cursor = vehicles_collection.find(query)
     
+    # Convertir le curseur en liste de dictionnaires
+    vehicules_list = list(cursor)
+    
+    # Si la liste est vide, retourner un message approprié
+    if not vehicules_list:
+        return jsonify({"message": "No data found for the given date."}), 404
+
     # Calculer l'utilisation des pompes pour les données filtrées
-    pump_usage = df['pompes_info'].value_counts().to_dict()
+    pump_usage = {}
+    for vehicule in vehicules_list:
+        pump_info = vehicule.get('pompes_info')
+        if pump_info:
+            if pump_info in pump_usage:
+                pump_usage[pump_info] += 1
+            else:
+                pump_usage[pump_info] = 1
     
     # Retourner les données au format JSON
     return jsonify(pump_usage)

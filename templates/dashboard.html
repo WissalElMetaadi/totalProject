@@ -25,11 +25,13 @@
         <!-- DataTables JS (Dépend de jQuery) -->
         <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
     
-        <!-- Chart.js -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+       
     
         <!-- Leaflet JS (Pour les cartes) -->
-        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+ <!-- Inclure Leaflet CSS -->
+ <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+ <!-- Inclure Chart.js -->
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
         <link rel="stylesheet" href="{{ url_for('static', filename='css/newdash.css') }}">
         <style>
           .sentiment-pie {
@@ -70,6 +72,58 @@
             to {
                 opacity: 1;
             }
+        }
+
+
+
+        .dashboard-unique {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+            width: 99%;
+            max-width: 1000px;
+            height:99% ;
+        }
+        .box-unique {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        .total-unique {
+            grid-row: span 2;
+            background-color: #e6f8ff;
+            color: #003366;
+            flex-direction: column;
+        }
+        .vehicules-unique {
+            background-color: #e5ebed;
+            color: #003366;
+        }
+        .taxis-unique {
+            background-color: #f9f7bb;
+            color: #333;
+        }
+        .pl-unique {
+            background-color: #d8f8d1;
+            color: #003366;
+        }
+        .capture-unique {
+            background-color: #ff1801;
+            color: #fff;
+        }
+        .total-unique .number-unique,
+        .capture-unique .number-unique {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .capture-unique .fraction-unique {
+            font-size: 1em;
         }
         </style>
 </head>
@@ -139,13 +193,7 @@
                 </div>
                 
                 <div class="stats-container">
-                    <div class="stat-card">
-                        <div class="icon-bg"><img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Money Icon"></div>
-                        <div class="stat-details">
-                            <h3>Nombre de véhicules actuel</h3>
-                            <p class="stat-value">197<span class="percentage positive">+55%</span></p>
-                        </div>
-                    </div>
+                    
                     <div class="stats-container">
                         
                         <div class="stat-card" id="notificationCard">
@@ -176,7 +224,7 @@
                             </div>
                         </div>
                     </div>
-                    <h1>Sentiment Analysis Dashboard</h1>
+                    <h1>Sentiment Analysis </h1>
                     <div id="sentiment-chart" class="sentiment-pie"></div>
                 </div>
                 
@@ -262,20 +310,72 @@
 
                 <div class="container-charts">
                     
+                    
+                    
+                    
+                    <div class="chart-container">
+                        <div class="dashboard-unique">
+                            <div class="box-unique total-unique">
+                                <div>
+                                    <div class="number-unique">1025</div>
+                                    <div>Total des véhicules</div>
+                                </div>
+                            </div>
+                            <div class="box-unique vehicules-unique">
+                                <div>
+                                    <div>Débit Véhicules<br>J.Ouvrable</div>
+                                    <div class="number-unique">865</div>
+                                </div>
+                            </div>
+                            <div class="box-unique taxis-unique">
+                                <div>
+                                    <div>Débit Taxi</div>
+                                    <div class="number-unique">263</div>
+                                </div>
+                            </div>
+                            <div class="box-unique pl-unique">
+                                <div>
+                                    <div>Débit PL</div>
+                                    <div class="number-unique">160</div>
+                                </div>
+                            </div>
+                            <div class="box-unique capture-unique">
+                                <div>
+                                    <div>Taux de captation sur<br>Route Principale</div>
+                                    <div class="number-unique">1025</div>
+                                    <div class="fraction-unique">/5214</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="chart-container-green">
                         <h2 class="chart-title-green">Top Fidèles Clients</h2>
                         <div id="pyramid-chart-container" class="green-chart">
                             <!-- Place your chart content here -->
                         </div>
                     </div>
-                    
-                    
-                    <div class="chart-container">
+            </div>
+
+            <div class="dashboard-container-unique">
+                <!-- Section Graphique -->
+                <div class="chart-container-unique">
+                    <div >
                         <h2 class="chart-title">Nombre Total de Véhicules par Heure</h2>
                         <canvas id="vehiclesHourChart"></canvas>
                     </div>
-                
+                </div>
+                <!-- Section Carte -->
+                <div class="map-container-unique">
+                    <h2 class="map-title-unique">Total Tunisie</h2>
+                    <div id="mapCanvas" class="map-canvas-unique"></div>
+                </div>
             </div>
+        
+
+
+
+
+
                 <div id="filters">
                     <label for="type-filter">Station Area:
                         <select id="type-filter">
@@ -371,149 +471,58 @@
         </div>
     </div>
     
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}">
- const sentimentPieData = [
-            {name: 'Positive', value: {{ sentiment_counts.get('positive', 0) }}, color: '#18FFFF'},
-            {name: 'Negative', value: {{ sentiment_counts.get('negative', 0) }}, color: '#0288D1'},
-            {name: 'Neutral', value: {{ sentiment_counts.get('neutral', 0) }}, color: '#BF360C'}
+ var ctx = document.getElementById('chartCanvas').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'],
+                datasets: [{
+                    label: 'Nombre Total de Véhicules',
+                    data: [5, 10, 15, 20, 25, 30, 35, 30, 25, 20, 15, 10, 5, 15, 25, 35, 45, 35, 25, 15, 10, 5, 3, 2],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+    <!-- Initialiser Leaflet.js -->
+    <script>
+        // Initialiser la carte centrée sur la Tunisie
+        var map = L.map('mapCanvas').setView([33.8869, 9.5375], 6); // Vue centrée sur la Tunisie avec un zoom de 6
+
+        // Ajouter une couche de tuiles (tiles layer) à la carte
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Ajouter des marqueurs avec des popups
+        var locations = [
+            { coords: [36.8065, 10.1815], popup: "Tunis, la capitale de la Tunisie" },
+            { coords: [36.7256, 10.3157], popup: "Sidi Bou Said, une ville côtière pittoresque" },
+            { coords: [33.8869, 10.0982], popup: "Djerba, une île méditerranéenne" },
+            { coords: [34.7333, 10.7600], popup: "Gabès, une ville portuaire" },
+            { coords: [35.6781, 10.0963], popup: "Monastir, une ville historique" }
         ];
-        bakeSentimentDonut(sentimentPieData);
 
-        function bakeSentimentDonut(data) {
-            let activeSegment;
-            const sortedData = data.sort((a, b) => b['value'] - a['value']),
-                viewWidth = 500,
-                viewHeight = 300,
-                svgWidth = viewHeight,
-                svgHeight = viewHeight,
-                thickness = 40,
-                colorArray = sortedData.map(k => k.color),
-                el = d3.select('body'),
-                radius = Math.min(svgWidth, svgHeight) / 2,
-                color = d3.scaleOrdinal().range(colorArray);
-
-            const max = d3.max(sortedData, (d) => d.value);
-
-            const svg = el.append('svg')
-                .attr('viewBox', `0 0 ${viewWidth + thickness} ${viewHeight + thickness}`)
-                .attr('class', 'sentiment-pie')
-                .attr('width', viewWidth)
-                .attr('height', svgHeight);
-
-            const g = svg.append('g')
-                .attr('transform', `translate(${(svgWidth / 2) + (thickness / 2)}, ${(svgHeight / 2) + (thickness / 2)})`);
-
-            const arc = d3.arc()
-                .innerRadius(radius - thickness)
-                .outerRadius(radius);
-
-            const arcHover = d3.arc()
-                .innerRadius(radius - (thickness + 5))
-                .outerRadius(radius + 8);
-
-            const pie = d3.pie()
-                .value(function (d) { return d.value; })
-                .sort(null);
-
-            const path = g.selectAll('path')
-                .attr('class', 'sentiment-data-path')
-                .data(pie(sortedData))
-                .enter()
-                .append('g')
-                .attr('class', 'sentiment-data-group')
-                .each(function (pathData) {
-                    const group = d3.select(this);
-
-                    group.append('text')
-                        .text(`${pathData.data.value}`)
-                        .attr('class', 'sentiment-data-text sentiment-data-text__value')
-                        .attr('text-anchor', 'middle')
-                        .attr('dy', '1rem');
-
-                    group.append('text')
-                        .text(`${pathData.data.name}`)
-                        .attr('class', 'sentiment-data-text sentiment-data-text__name')
-                        .attr('text-anchor', 'middle')
-                        .attr('dy', '3.5rem');
-
-                    // Set default active segment
-                    if (pathData.value === max) {
-                        const textVal = d3.select(this).select('.sentiment-data-text__value')
-                            .classed('sentiment-data-text--show', true);
-
-                        const textName = d3.select(this).select('.sentiment-data-text__name')
-                            .classed('sentiment-data-text--show', true);
-                    }
-
-                })
-                .append('path')
-                .attr('d', arc)
-                .attr('fill', (d) => color(d.data.name))
-                .attr('class', 'sentiment-data-path')
-                .on('mouseover', function () {
-                    const _thisPath = this,
-                        parentNode = _thisPath.parentNode;
-
-                    if (_thisPath !== activeSegment) {
-
-                        activeSegment = _thisPath;
-
-                        d3.selectAll('.sentiment-data-text')
-                            .classed('sentiment-data-text--show', false);
-
-                        d3.selectAll('.sentiment-data-path')
-                            .transition()
-                            .duration(250)
-                            .attr('d', arc);
-
-                        d3.select(_thisPath)
-                            .transition()
-                            .duration(250)
-                            .attr('d', arcHover);
-
-                        d3.select(parentNode).select('.sentiment-data-text__value')
-                            .classed('sentiment-data-text--show', true);
-                        d3.select(parentNode).select('.sentiment-data-text__name')
-                            .classed('sentiment-data-text--show', true);
-                    }
-
-                })
-                .each(function (d) {
-                    if (d.value === max) {
-                        d3.select(this)
-                            .attr('d', arcHover);
-                        activeSegment = this;
-                    }
-                    this._current = d;
-                });
-
-            const legendRectSize = 15;
-            const legendSpacing = 10;
-
-            const legend = svg.selectAll('.sentiment-legend')
-                .data(color.domain())
-                .enter()
-                .append('g')
-                .attr('class', 'sentiment-legend')
-                .attr('transform', function (d, i) {
-                    const itemHeight = legendRectSize + legendSpacing;
-                    const offset = legendRectSize * color.domain().length;
-                    const horz = svgWidth + 80;
-                    const vert = (i * itemHeight) + legendRectSize + (svgHeight - offset) / 2;
-                    return `translate(${horz}, ${vert})`;
-                });
-
-            legend.append('circle')
-                .attr('r', legendRectSize / 2)
-                .style('fill', color);
-
-            legend.append('text')
-                .attr('x', legendRectSize + legendSpacing)
-                .attr('y', legendRectSize - legendSpacing)
-                .attr('class', 'sentiment-legend-text')
-                .text((d) => d);
-        }
+        locations.forEach(function(location) {
+            L.marker(location.coords).addTo(map)
+                .bindPopup(location.popup);
+        });
 </script>
 </body>
 </html>

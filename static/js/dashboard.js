@@ -387,11 +387,13 @@ function updateDataForHourlyChart() {
 // Mise à jour des données pour le graphique d'utilisation des pompes
 function updateDataForPumpUsageChart() {
     const chosenDate = document.getElementById('dateInput').value; // Récupérer la date choisie
+    console.log(`Date choisie : ${chosenDate}`);
 
     // Modifier la requête fetch pour inclure la date choisie comme paramètre
     fetch(`/pump_data?date=${chosenDate}`)
     .then(response => response.json())
     .then(data => {
+        console.log(`Données reçues du backend :`, data);
         const ctx = document.getElementById('pumpUsageChart').getContext('2d');
 
         // Si un graphique existe déjà, détruisez-le
@@ -435,6 +437,7 @@ function updateDataForPumpUsageChart() {
     })
     .catch(error => console.error('Erreur lors de la récupération des données:', error));
 }
+
 
 // Mise à jour des données pour le graphique de temps d'attente moyen
 function updateDataForAvgWaitTimeChart() {
