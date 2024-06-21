@@ -498,17 +498,12 @@ def dashboard():
 
     vehicles_collection = mongo.db.vehicules
     data = list(vehicles_collection.find())
-    sentiment_analysis = mongo.db.sentiment_analysis
-    sentiment_data = list(sentiment_analysis.find())
-
-    sentiment_counts = {}
-    for record in sentiment_data:
-        stars = record.get('stars')
-        if stars:
-            if stars in sentiment_counts:
-                sentiment_counts[stars] += 1
-            else:
-                sentiment_counts[stars] = 1
+    vehicles_collection1 = mongo.db.sentiment_data
+    pipeline = [
+        {"$group": {"_id": "$stars", "count": {"$sum": 1}}}
+    ]
+    result = list(vehicles_collection1.aggregate(pipeline))
+    sentiment_counts = {doc["_id"]: doc["count"] for doc in result}
 
     return render_template('dashboard.html', data=data, sentiment_counts=sentiment_counts)
 

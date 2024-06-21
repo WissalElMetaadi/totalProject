@@ -5,14 +5,7 @@
     <title>Sentiment Analysis Dashboard</title>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <style>
-        html, body {
-            height: 100%;
-            display: flex;
-        }
-        body {
-            background: linear-gradient(to bottom, #606c88 0%, #3f4c6b 100%);
-            font-family: 'Source Sans Pro', sans-serif;
-        }
+        
         .sentiment-pie {
             position: absolute;
             top: 50%;
@@ -67,7 +60,7 @@
 
         function bakeSentimentDonut(data) {
             let activeSegment;
-            const sortedData = data.sort((a, b) => b['value'] - a['value']),
+            const sortedData = data.sort((a, b) => b.value - a.value),
                 viewWidth = 500,
                 viewHeight = 300,
                 svgWidth = viewHeight,
@@ -102,7 +95,6 @@
                 .sort(null);
 
             const path = g.selectAll('path')
-                .attr('class', 'sentiment-data-path')
                 .data(pie(sortedData))
                 .enter()
                 .append('g')
@@ -111,23 +103,22 @@
                     const group = d3.select(this);
 
                     group.append('text')
-                        .text(`${pathData.data.value}`)
+                        .text(pathData.data.value)
                         .attr('class', 'sentiment-data-text sentiment-data-text__value')
                         .attr('text-anchor', 'middle')
                         .attr('dy', '1rem');
 
                     group.append('text')
-                        .text(`${pathData.data.name}`)
+                        .text(pathData.data.name)
                         .attr('class', 'sentiment-data-text sentiment-data-text__name')
                         .attr('text-anchor', 'middle')
                         .attr('dy', '3.5rem');
 
-                    // Set default active segment
                     if (pathData.value === max) {
-                        const textVal = d3.select(this).select('.sentiment-data-text__value')
+                        d3.select(this).select('.sentiment-data-text__value')
                             .classed('sentiment-data-text--show', true);
 
-                        const textName = d3.select(this).select('.sentiment-data-text__name')
+                        d3.select(this).select('.sentiment-data-text__name')
                             .classed('sentiment-data-text--show', true);
                     }
 

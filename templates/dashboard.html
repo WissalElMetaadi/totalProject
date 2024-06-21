@@ -34,27 +34,38 @@
  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
         <link rel="stylesheet" href="{{ url_for('static', filename='css/newdash.css') }}">
         <style>
-          .sentiment-pie {
+          .dashboardsentiment {
+            position: relative;
+            
+        }
+        .dashboardsentiment h1 {
+            color: rgb(0, 0, 0);
+            font-size: 1rem; /* Taille de la police */
+            font-weight: bold; /* Poids de la police */
+            margin-bottom: 20px; /* Espacement entre le titre et la charte */
+            text-align: center; /* Alignement du texte */
+        }
+        .sentiment-pie {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 51%;
+            left: 80%;
             transform: translate(-50%, -50%);
-            filter: drop-shadow(0 2px 0px #333);
+            filter: drop-shadow(0 2px 0px #000000);
         }
         .sentiment-data-path:hover {
             cursor: pointer;
         }
         .sentiment-data-text {
             transition: transform .2s ease-in-out;
-            fill: #fff;
+            fill: #302f2f;
         }
         .sentiment-data-text__value {
-            font-size: 7rem;
+            font-size: 5rem; /* Réduire la taille du texte */
             transform: translateY(-.5rem);
             opacity: 0;
         }
         .sentiment-data-text__name {
-            font-size: 2rem;
+            font-size: 1rem; /* Réduire la taille du texte */
             transform: translateY(.5rem);
             opacity: 0;
         }
@@ -73,8 +84,6 @@
                 opacity: 1;
             }
         }
-
-
 
         .dashboard-unique {
             display: grid;
@@ -224,8 +233,16 @@
                             </div>
                         </div>
                     </div>
-                    <h1>Sentiment Analysis </h1>
-                    <div id="sentiment-chart" class="sentiment-pie"></div>
+                
+                    
+                    
+                    
+
+                    <div class="dashboardsentiment">
+                        <h1>Twitter Customer Sentiment Analysis Dashboard </h1>
+                        <div id="sentiment-pie-container" class="sentiment-pie"></div>
+                    </div>
+                    
                 </div>
                 
                                
@@ -523,6 +540,170 @@
             L.marker(location.coords).addTo(map)
                 .bindPopup(location.popup);
         });
+
+
+
+
+
+        const sentimentPieData = [
+    {name: 'Positive', value: {{ sentiment_counts.get('positive', 0) }}, color: '#33F100'},
+    {name: 'Negative', value: {{ sentiment_counts.get('negative', 0) }}, color: '#FF0000'},
+    {name: 'Neutral', value: {{ sentiment_counts.get('neutral', 0) }}, color: '#00F3FF'}
+];
+bakeSentimentDonut(sentimentPieData);
+
+function bakeSentimentDonut(data) {
+    let activeSegment;
+    const sortedData = data.sort((a, b) => b.value - a.value),
+        viewWidth = 500,
+        viewHeight = 230,
+        svgWidth = viewHeight,
+        svgHeight = viewHeight,
+        thickness = 40,
+        colorArray = sortedData.map(k => k.color),
+        el = d3.select('#sentiment-pie-container'),
+        radius = Math.min(svgWidth, svgHeight) / 2,
+        color = d3.scaleOrdinal().range(colorArray);
+
+    // Check if the container exists
+    if (el.empty()) {
+        console.error("Container with ID 'sentiment-pie-container' not found.");
+        return;
+    }
+
+    const max = d3.max(sortedData, (d) => d.value);
+
+    // Remove any existing SVG to avoid duplicates
+    el.selectAll("svg").remove();
+
+    const svg = el.append('svg')
+        .attr('viewBox', `0 0 ${viewWidth + thickness} ${viewHeight + thickness}`)
+        .attr('class', 'sentiment-pie')
+        .attr('width', viewWidth)
+        .attr('height', svgHeight);
+
+    const g = svg.append('g')
+        .attr('transform', `translate(${(svgWidth / 2) + (thickness / 2)}, ${(svgHeight / 2) + (thickness / 2)})`);
+
+    const arc = d3.arc()
+        .innerRadius(radius - thickness)
+        .outerRadius(radius);
+
+    const arcHover = d3.arc()
+        .innerRadius(radius - (thickness + 5))
+        .outerRadius(radius + 8);
+
+    const pie = d3.pie()
+        .value(function (d) { return d.value; })
+        .sort(null);
+
+    const path = g.selectAll('path')
+        .data(pie(sortedData))
+        .enter()
+        .append('g')
+        .attr('class', 'sentiment-data-group')
+        .each(function (pathData) {
+            const group = d3.select(this);
+
+            group.append('text')
+                .text(pathData.data.value)
+                .attr('class', 'sentiment-data-text sentiment-data-text__value')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '1rem');
+
+            group.append('text')
+                .text(pathData.data.name)
+                .attr('class', 'sentiment-data-text sentiment-data-text__name')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '3.5rem');
+
+            if (pathData.value === max) {
+                d3.select(this).select('.sentiment-data-text__value')
+                    .classed('sentiment-data-text--show', true);
+
+                d3.select(this).select('.sentiment-data-text__name')
+                    .classed('sentiment-data-text--show', true);
+            }
+
+        })
+        .append('path')
+        .attr('d', arc)
+        .attr('fill', (d) => color(d.data.name))
+        .attr('class', 'sentiment-data-path')
+        .on('mouseover', function () {
+            const _thisPath = this,
+                parentNode = _thisPath.parentNode;
+
+            if (_thisPath !== activeSegment) {
+
+                activeSegment = _thisPath;
+
+                d3.selectAll('.sentiment-data-text')
+                    .classed('sentiment-data-text--show', false);
+
+                d3.selectAll('.sentiment-data-path')
+                    .transition()
+                    .duration(250)
+                    .attr('d', arc);
+
+                d3.select(_thisPath)
+                    .transition()
+                    .duration(250)
+                    .attr('d', arcHover);
+
+                d3.select(parentNode).select('.sentiment-data-text__value')
+                    .classed('sentiment-data-text--show', true);
+                d3.select(parentNode).select('.sentiment-data-text__name')
+                    .classed('sentiment-data-text--show', true);
+            }
+
+        })
+        .each(function (d) {
+            if (d.value === max) {
+                d3.select(this)
+                    .attr('d', arcHover);
+                activeSegment = this;
+            }
+            this._current = d;
+        });
+
+    const legendRectSize = 15;
+    const legendSpacing = 10;
+
+    const legend = svg.selectAll('.sentiment-legend')
+        .data(color.domain())
+        .enter()
+        .append('g')
+        .attr('class', 'sentiment-legend')
+        .attr('transform', function (d, i) {
+            const itemHeight = legendRectSize + legendSpacing;
+            const offset = legendRectSize * color.domain().length;
+            const horz = svgWidth + 80;
+            const vert = (i * itemHeight) + legendRectSize + (svgHeight - offset) / 2;
+            return `translate(${horz}, ${vert})`;
+        });
+
+    legend.append('circle')
+        .attr('r', legendRectSize / 2)
+        .style('fill', color);
+
+    legend.append('text')
+        .attr('x', legendRectSize + legendSpacing)
+        .attr('y', legendRectSize - legendSpacing)
+        .attr('class', 'sentiment-legend-text')
+        .text((d) => d);
+}
+
+// Debugging function to ensure the container exists and is visible
+document.addEventListener("DOMContentLoaded", function() {
+    const container = document.getElementById('sentiment-pie-container');
+    if (container) {
+        console.log('Container exists');
+    } else {
+        console.error('Container does not exist');
+    }
+});
+
 </script>
 </body>
 </html>
