@@ -9,160 +9,141 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
     <style>
         html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-    width: 100%; /* Ensure the width is constrained */
-}
-
-.wrapper {
-    display: flex;
-    height: 100%;
-    width: 100%; /* Ensure the width is constrained */
-}
-
-.main-content {
-    flex-grow: 1;
-    background: #ffffff;
-    display: flex;
-    flex-direction: column;
-    margin-left: 200px;
-    overflow: hidden;
-    width: calc(100% - 150px); /* Adjust the width to account for the sidebar */
-}
-
-.content {
-    padding-top: 21px;
-    padding-left: 0px;
-    overflow: auto; /* Allow vertical scrolling if needed */
-    flex-grow: 1;
-}
-
-.drop-zone {
-    border: 2px dashed #7f0000;
-    border-radius: 50px;
-    width: 200px;
-    height: 90px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 20px auto;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    background-image: linear-gradient(to right top, #375ef9, #cee1f6);
-    color: #fff;
-}
-.drop-zone:hover, .drop-zone.drop-zone--over {
-    background-image: linear-gradient(to right bottom, #375ef9, #4c6ef6);
-    border-color: #65dfc9;
-}
-.drop-zone p {
-    margin: 0;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.video-table-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-    margin-top: -25px;
-    flex-grow: 1;
-    overflow: hidden; /* Prevents content overflow */
-}
-
-.video-container, .data-table {
-    width: 50%;
-    margin: 10px 0;
-    padding: 15px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.video-container h1, .data-table h2 {
-    text-align: center;
-    padding: 15px;
-    color: #ffffff;
-    margin-top: 0;
-    margin-bottom: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.video-container h1 {
-    background: linear-gradient(to right top, #375ef9, #f4eaea);
-    font-size: 26px;
-    font-style: italic;
-}
-
-.data-table h2 {
-    background: linear-gradient(45deg, #375ef9, #ffffff);
-    font-size: 26px;
-    font-style: italic;
-}
-
-.data-table table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.data-table th, .data-table td {
-    border: 1px solid #5d5d5d;
-    padding: 8px;
-    text-align: left;
-}
-
-.data-table th {
-    background-color: #375ef9;
-}
-
-.control-bar {
-    position: fixed;
-    bottom: 0;
-    width: 70%;
-    background-color: #f1f1f1;
-    padding: 5px 0;
-    text-align: center;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
-    margin-left: 160px;
-}
-
-.button {
-    background-color: #8eb6ed;
-    border: none;
-    color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background-color 0.3s;
-}
-
-.button:hover {
-    background-color: #45a049;
-}
-
-#videoFeed {
-    max-width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-}
-
-.chart-container1 {
-    margin-top: -21px;
-}
-
-
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            width: 100%; /* Ensure the width is constrained */
+        }
+        .wrapper {
+            display: flex;
+            height: 100%;
+            width: 100%; /* Ensure the width is constrained */
+        }
+        .main-content {
+            flex-grow: 1;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            margin-left: 200px;
+            overflow: hidden;
+            width: calc(100% - 150px); /* Adjust the width to account for the sidebar */
+        }
+        .content {
+            padding-top: 21px;
+            padding-left: 0px;
+            overflow: auto; /* Allow vertical scrolling if needed */
+            flex-grow: 1;
+        }
+        .drop-zone {
+            border: 2px dashed #7f0000;
+            border-radius: 50px;
+            width: 200px;
+            height: 90px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            background-image: linear-gradient(to right top, #375ef9, #cee1f6);
+            color: #fff;
+        }
+        .drop-zone:hover, .drop-zone.drop-zone--over {
+            background-image: linear-gradient(to right bottom, #375ef9, #4c6ef6);
+            border-color: #65dfc9;
+        }
+        .drop-zone p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .video-table-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: -25px;
+            flex-grow: 1;
+            overflow: hidden; /* Prevents content overflow */
+        }
+        .video-container, .data-table {
+            width: 50%;
+            margin: 10px 0;
+            padding: 15px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .video-container h1, .data-table h2 {
+            text-align: center;
+            padding: 15px;
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .video-container h1 {
+            background: linear-gradient(to right top, #375ef9, #f4eaea);
+            font-size: 26px;
+            font-style: italic;
+        }
+        .data-table h2 {
+            background: linear-gradient(45deg, #375ef9, #ffffff);
+            font-size: 26px;
+            font-style: italic;
+        }
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #5d5d5d;
+            padding: 8px;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: #375ef9;
+        }
+        .control-bar {
+            position: fixed;
+            bottom: 0;
+            width: 70%;
+            background-color: #f1f1f1;
+            padding: 5px 0;
+            text-align: center;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+            margin-left: 160px;
+        }
+        .button {
+            background-color: #8eb6ed;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        #videoFeed {
+            max-width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+        }
+        .chart-container1 {
+            margin-top: -21px;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
@@ -260,25 +241,32 @@
             <div class="control-bar">
                 <button class="button" onclick="startVideo()">Start Video</button>
                 <button class="button" onclick="stopVideo()">Stop Video</button>
-                <button class="button">Télécharger rapport</button>
+                <button class="button" onclick="downloadCSV()">Télécharger CSV</button>
             </div>
         </div>
     </div>
 
-    <script >
-        // Met à jour le titre de la station avec les valeurs de la région et de l'identifiant de station
-function updateTitle() {
-    var governorate = document.getElementById('governorate').value;
-    var stationId = document.getElementById('station-id').value;
-    var titleElement = document.getElementById('station-title');
-    titleElement.textContent = `${governorate} / ${stationId}`;
-}
+    <script>
+        console.log("Script JavaScript chargé.");
 
-// Initialise le titre avec les valeurs par défaut
-updateTitle();
+        // Met à jour le titre de la station avec les valeurs de la région et de l'identifiant de station
+        function updateTitle() {
+            var governorate = document.getElementById('governorate').value;
+            var stationId = document.getElementById('station-id').value;
+            var titleElement = document.getElementById('station-title');
+            titleElement.textContent = `${governorate} / ${stationId}`;
+        }
+
+        // Initialise le titre avec les valeurs par défaut
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTitle();
+        });
+
         document.addEventListener('DOMContentLoaded', (event) => {
             const dropZone = document.getElementById('file-drop-zone');
             const fileInput = document.getElementById('file-input');
+            let updateInterval;
+            let videoPath = null;
 
             dropZone.addEventListener('click', () => {
                 fileInput.click();
@@ -305,12 +293,12 @@ updateTitle();
             });
 
             function handleFiles(files) {
-                const url = '/upload'; // L'URL du serveur où les fichiers doivent être envoyés
+                const url = '/upload'; // URL de l'endpoint Flask pour l'upload
                 for (const file of files) {
                     const formData = new FormData();
-                    formData.append('file', file); // Créer un objet FormData et ajouter le fichier
+                    formData.append('file', file);
 
-                    // Envoyer le fichier au serveur avec une requête POST
+                    // Envoie de la requête POST avec le fichier au serveur Flask
                     fetch(url, {
                         method: 'POST',
                         body: formData,
@@ -318,54 +306,81 @@ updateTitle();
                     .then(response => response.json())
                     .then(data => {
                         console.log('Upload successful', data);
-                        // Vous pourriez ici lancer le traitement du fichier ou afficher un message de succès
+                        if (data.message) {
+                            videoPath = data.path;
+                            document.querySelector('.button[onclick="startVideo()"]').disabled = false;
+                        }
                     })
                     .catch(error => {
                         console.error('Error uploading file:', error);
                     });
-
-                    console.log('Fichier envoyé pour upload :', file.name);
                 }
             }
-        });
 
-        function startVideo() {
-            var img = document.getElementById('videoFeed');
-            img.src = "{{ url_for('video_feed') }}";
-        }
+            window.startVideo = function() {
+                if (videoPath) {
+                    fetch('/start_processing', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data.message);
+                            const img = document.getElementById('videoFeed');
+                            img.src = "/video_feed"; // Affichage vidéo
 
-        function stopVideo() {
-            var img = document.getElementById('videoFeed');
-            img.src = "";
-        }
+                            startUpdatingTable();
+                        })
+                        .catch(error => console.error('Error starting video:', error));
+                } else {
+                    alert("Please upload a video file first.");
+                }
+            }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            // Connect to the WebSocket server
-            const socket = io.connect(window.location.origin);
-            console.log("Connected to WebSocket server."); // Log connection
+            window.stopVideo = function() {
+                fetch('/stop_processing', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.message);
+                        const img = document.getElementById('videoFeed');
+                        img.src = "";
+                        clearInterval(updateInterval);
+                    })
+                    .catch(error => console.error('Error stopping video:', error));
+            }
 
-            // Listen for 'new_data' events from the server
-            socket.on('new_data', function (data) {
-                console.log("Received new data from server:", data); // Log received data
-                updateTable(data.data); // Update the table with new data
-            });
-
-            // Function to update the table with details from the server
-            function updateTable(details) {
-                console.log("Updating table with new vehicle details."); // Log the update process
-                const tableBody = document.getElementById('vehicleDetails'); // Access the table body
-                tableBody.innerHTML = ''; // Clear previous entries
-
-                details.forEach(detail => {
-                    const row = tableBody.insertRow(); // Insert a new row in the table
-                    Object.values(detail).forEach(text => {
-                        const cell = row.insertCell(); // Insert a new cell in the row
-                        cell.textContent = text; // Add text to the cell
+            function startUpdatingTable() {
+                updateInterval = setInterval(() => {
+                    fetch('/get_frame_data')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateTable(data);
+                    })
+                    .catch(error => {
+                        console.error('Error getting frame data:', error);
                     });
-                });
-                console.log("Table updated successfully."); // Log successful update
+                }, 1000); // Met à jour toutes les secondes
+            }
+
+            function updateTable(details) {
+                const tableBody = document.getElementById('vehicleDetails');
+                tableBody.innerHTML = '';
+
+                if (!details) return; // Si aucune donnée n'est disponible, ne rien faire
+
+                for (const key in details) {
+                    const detail = details[key];
+                    const row = tableBody.insertRow();
+                    const keys = ['track_id', 'class', 'license_plate_text', 'score LP', "date d'entrée", 'date de sortie', 'wait_time', 'pompes_info'];
+                    for (const k of keys) {
+                        const cell = row.insertCell();
+                        cell.textContent = detail[k];
+                    }
+                }
+            }
+
+            window.downloadCSV = function() {
+                window.location.href = '/download_csv';
             }
         });
+
     </script>
 </body>
 </html>

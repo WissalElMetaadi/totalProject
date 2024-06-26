@@ -1,56 +1,11 @@
-
-
-$(document).ready(function() {
-    function updateNotification(message, user) {
-        const notificationMessage = $('#notificationMessage');
-        const viewDetailsButton = $('#viewDetailsButton');
-        
-        notificationMessage.text(message);
-        viewDetailsButton.show();
-        
-        // Store user details in the button for later use
-        viewDetailsButton.data('user', user);
-    }
-
-    $('#viewDetailsButton').click(function() {
-        const user = $(this).data('user');
-        const userDetailsBody = $('#userDetailsBody');
-        
-        // Fill modal with user details
-        userDetailsBody.html(`
-            <p><strong>Nom:</strong> ${user.name}</p>
-            <p><strong>Email:</strong> ${user.email}</p>
-            <p><strong>Genre:</strong> ${user.gender}</p>
-            <p><strong>Type de Travailleur:</strong> ${user.worker_type}</p>
-            <p><strong>Date de Naissance:</strong> ${user.birthdate}</p>
-            <p><strong>Station:</strong> ${user.station_id}</p>
-            <p><strong>Gouvernorat:</strong> ${user.governorate_id}</p>
-            <p><strong>CIN:</strong> ${user.cin}</p>
-        `);
-    });
-
-    // Simulate adding a user and updating the notification
-    setTimeout(() => {
-        const newUser = {
-            name: 'John Doe',
-            email: 'john@example.com',
-            gender: 'male',
-            worker_type: 'global_admin',
-            birthdate: '1985-05-15',
-            station_id: 'Station 1',
-            governorate_id: 'Tunis',
-            cin: '12345678'
-        };
-        updateNotification(`Nouveau ${newUser.worker_type} ajouté à ${newUser.station_id} (${newUser.governorate_id})`, newUser);
-    }, 1000);
-});
 $(document).ready(function() {
     let lastCheckTime = Date.now();
 
     function updateNotification(messages) {
-        console.log("Updating notifications:", messages);
         const notificationMessages = $('#notificationMessages');
         const viewDetailsButton = $('#viewDetailsButton');
+
+        console.log('Updating notifications with messages:', messages);
 
         notificationMessages.empty();
 
@@ -79,8 +34,7 @@ $(document).ready(function() {
                 <p><strong>Genre:</strong> ${user.gender}</p>
                 <p><strong>Type de Travailleur:</strong> ${user.worker_type}</p>
                 <p><strong>Date de Naissance:</strong> ${user.birthdate}</p>
-                <p><strong>Station:</strong> ${user.station_id}</p>
-                <p><strong>Gouvernorat:</strong> ${user.governorate_id}</p>
+                <p><strong>Station:</strong> ${user.station_name}</p>
                 <p><strong>CIN:</strong> ${user.cin}</p>
                 <hr>
             `;
@@ -91,22 +45,21 @@ $(document).ready(function() {
     });
 
     function fetchRecentUsers() {
-        console.log('Fetching recent users');
         $.ajax({
             type: 'GET',
             url: '/get_recent_users',
             data: { since: lastCheckTime / 1000 },
             success: function(users) {
-                console.log('Recent users:', users);
+                console.log('Fetched recent users:', users);
                 if (users.length > 0) {
                     const messages = users.map(user => ({
-                        text: `Nouveau ${user.worker_type} ajouté à ${user.station_id} (${user.governorate_id})`,
+                        text: `Nouveau ${user.worker_type} ajouté à ${user.station_name}`,
                         user: user
                     }));
                     updateNotification(messages);
                     lastCheckTime = Date.now(); // Update the last check time
                 } else {
-                    console.log("No new users found.");
+                    console.log('No new users found');
                 }
             },
             error: function(response) {
@@ -119,14 +72,20 @@ $(document).ready(function() {
 });
 
 function openModal() {
+    console.log('Opening modal');
     const modal = document.getElementById('userDetailsModal');
     modal.classList.add('show');
 }
 
 function closeModal() {
+    console.log('Closing modal');
     const modal = document.getElementById('userDetailsModal');
     modal.classList.remove('show');
 }
+
+document.getElementById('viewDetailsButton').addEventListener('click', openModal);
+document.querySelector('.tnc-close').addEventListener('click', closeModal);
+
 // Met à jour le titre de la station avec les valeurs de la région et de l'identifiant de station
 function updateTitle() {
     var governorate = document.getElementById('governorate').value;
@@ -456,6 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDataForHourlyChart(dateToSet);
     updateDataForVehicleChart();
     updateTopClientsForDate();
+    updateStatistics(dateToSet); // Mise à jour des statistiques avec la date initiale
 
     document.getElementById('dateInput').addEventListener('change', function() {
         const chosenDate = this.value; // La date choisie par l'utilisateur
@@ -464,8 +424,23 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDataForHourlyChart(chosenDate);
         updateDataForVehicleChart();
         updateTopClientsForDate();
+        updateStatistics(chosenDate); // Mise à jour des statistiques lorsque la date change
     });
 });
+
+function updateStatistics(selectedDate) {
+    fetch('/api/statistics?date=' + selectedDate)
+        .then(response => response.json())
+        .then(data => {
+            document.querySelector('.total-unique .number-unique').innerText = data.total_vehicules;
+            document.querySelector('.vehicules-unique .number-unique').innerText = data.debit_ouvrable;
+            document.querySelector('.taxis-unique .number-unique').innerText = data.debit_taxi;
+            document.querySelector('.pl-unique .number-unique').innerText = data.debit_vl; // Débit VL
+            document.querySelector('.capture-unique .number-unique').innerText = data.debit_pl; // Débit PL
+        })
+        .catch(error => console.error('Erreur lors de la récupération des statistiques:', error));
+}
+
 
 // Mise à jour des données pour les meilleurs clients en fonction de la date
 function updateTopClientsForDate() {

@@ -28,15 +28,28 @@ from datetime import datetime
 import pytz
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from flask_pymongo import PyMongo
+from flask import Flask
+
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+logging.basicConfig(level=logging.DEBUG)
+app.secret_key = 'votre_cle_secrete_ici'  # Définissez votre clé secrète ici
+current_frame_data = None  # Variable pour stocker les données du cadre actuel
+is_processing = False  # Indicateur pour contrôler le traitement
+
+
+
+
+
 
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:JEONjungkook123@localhost/totalbd'
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/station_total'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = r'C:\Users\Utilisateur\Desktop\projet_flask\uploads'
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 100 MB limit
+app.config['ALLOWED_EXTENSIONS'] = {'mp4', 'mov', 'avi', 'mkv'}
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+csv_file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'output.csv')
 
 
 mongo = PyMongo(app)
@@ -52,8 +65,38 @@ class User(UserMixin):
         self.name = name
         self.worker_type = worker_type
 
+def load_csv():
+    data = {}
+    if os.path.isfile(csv_file_path):
+        with open(csv_file_path, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                data[row['track_id']] = row
+    return data
 
+def save_csv(data):
+    with open(csv_file_path, 'w', newline='') as csvfile:
+        fieldnames = ['track_id', 'class', 'license_plate_text', 'score LP', "date d'entrée", 'date de sortie', 'wait_time', 'pompes_info']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in data.values():
+            writer.writerow(row)
 
+def update_csv(new_data):
+    data = load_csv()
+    for key, value in new_data.items():
+        row = {
+            'track_id': str(key),  # Assurez-vous que les clés sont des chaînes pour correspondre aux clés du CSV
+            'class': value.get('class', 'N/A'),
+            'license_plate_text': value.get('license_plate_text', 'N/A'),
+            'score LP': value.get('score LP', 'N/A'),
+            "date d'entrée": value.get("date d'entrée", 'N/A'),
+            'date de sortie': value.get('date de sortie', 'N/A'),
+            'wait_time': value.get('wait_time', 'N/A'),
+            'pompes_info': value.get('pompes_info', 'N/A')
+        }
+        data[str(key)] = row
+    save_csv(data)
 
 
 @login_manager.user_loader
@@ -66,8 +109,19 @@ def load_user(user_id):
         logging.error(f"Error loading user: {e}")
     return None
 
+@app.route('/start_processing', methods=['POST'])
+def start_processing():
+    global is_processing
+    is_processing = True
+    # Réinitialiser le fichier CSV à chaque démarrage du traitement
+    open(csv_file_path, 'w').close()  # Crée un fichier vide
+    return jsonify({'message': 'Processing started'})
 
-
+@app.route('/stop_processing', methods=['POST'])
+def stop_processing():
+    global is_processing
+    is_processing = False
+    return jsonify({'message': 'Processing stopped'})
 @app.route('/get_recent_users', methods=['GET'])
 def get_recent_users():
     try:
@@ -81,26 +135,49 @@ def get_recent_users():
         
         recent_users = mongo.db.users.find(query)
         
-        users_data = [
-            {
+        users_data = []
+        for user in recent_users:
+            birthdate = user.get('birthdate')
+            created_at = user.get('created_at')
+            logging.debug(f"Processing user: {user['name']} with birthdate: {birthdate} and created_at: {created_at}")
+            if isinstance(birthdate, str):
+                try:
+                    birthdate = datetime.strptime(birthdate, '%Y-%m-%d') if birthdate else None
+                except ValueError as e:
+                    logging.error(f"Error parsing birthdate for user {user['name']}: {e}")
+                    birthdate = None
+            if isinstance(created_at, str):
+                try:
+                    created_at = datetime.strptime(created_at, '%Y-%m-%d') if created_at else None
+                except ValueError as e:
+                    logging.error(f"Error parsing created_at for user {user['name']}: {e}")
+                    created_at = None
+
+            # Retrieve station name
+            station = mongo.db.stations.find_one({'_id': user['station_id']})
+            station_name = station['name'] if station else 'Unknown'
+            
+            user_data = {
                 'id': str(user['_id']),
                 'name': user['name'],
                 'email': user['email'],
                 'gender': user.get('gender'),
                 'worker_type': user.get('worker_type'),
-                'birthdate': user.get('birthdate').strftime('%Y-%m-%d') if user.get('birthdate') else None,
-                'station_id': user.get('station_id'),
-                'governorate_id': user.get('governorate_id'),
+                'birthdate': birthdate.strftime('%Y-%m-%d') if birthdate else None,
+                'station_id': str(user.get('station_id')),
+                'station_name': station_name,
                 'cin': user.get('cin'),
-                'created_at': user['created_at'].timestamp() if user.get('created_at') else None
-            } for user in recent_users
-        ]
+                'created_at': created_at.timestamp() if created_at else None
+            }
+            users_data.append(user_data)
 
         logging.info(f"Number of recent users found: {len(users_data)}")
         return jsonify(users_data)
     except Exception as e:
         logging.error(f"Error fetching recent users: {e}")
         return jsonify({'error': 'Failed to fetch recent users.'}), 500
+
+
 
 @app.route('/add_governorate', methods=['POST'])
 def add_governorate():
@@ -135,6 +212,11 @@ def add_user1():
 
         # Hacher le mot de passe et créer le document utilisateur
         password_hash = generate_password_hash(user_data['password'])
+        
+        # Ajouter la colonne created_at avec le fuseau horaire Africa/Tunis
+        tunisia_tz = pytz.timezone('Africa/Tunis')
+        created_at = datetime.now(tunisia_tz)
+        
         new_user = {
             'name': user_data['name'],
             'email': user_data['email'],
@@ -144,7 +226,8 @@ def add_user1():
             'station_id': station['_id'],  # Utiliser l'ObjectId de la station
             'cin': user_data['cin'],
             'password_hash': password_hash,
-            'profile_picture': user_data.get('profile_picture', 'default.jpg')
+            'profile_picture': user_data.get('profile_picture', 'default.jpg'),
+            'created_at': created_at  # Ajouter le champ created_at
         }
         mongo.db.users.insert_one(new_user)
         app.logger.info("User added successfully")
@@ -153,7 +236,6 @@ def add_user1():
     except Exception as e:
         app.logger.error(f"Exception occurred: {e}")
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/get_users1', methods=['GET'])
 def get_users1():
@@ -677,73 +759,76 @@ def registre():
     return render_template('registre.html')
 
 
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
 @app.route('/video_feed')
 def video_feed():
-    if video_path:
-        # Assurez-vous que process_video retourne quelque chose que vous pouvez envoyer en réponse
-        return Response(process_video(video_path), mimetype='multipart/x-mixed-replace; boundary=frame')
-    else:
-        return "Aucun fichier vidéo sélectionné", 400
+    global video_capture
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-#VIDEO_PATH = r'C:\Users\Utilisateur\Desktop\projet_flask\sampleee11.mp4'
+def generate_frames():
+    global video_path, is_processing, current_frame_data
+    if video_path is None:
+        return
 
-
-
-def process_video(VIDEO_PATH):
-    cap = cv2.VideoCapture(VIDEO_PATH)
-    while cap.isOpened():
+    cap = cv2.VideoCapture(video_path)
+    while cap.isOpened() and is_processing:
         ret, frame = cap.read()
         if not ret:
             break
-        
-        processed_frame,combined_dict = process_frame(frame)  # Passer uniquement la frame
-        #processed_frame = run_yolo(frame)
+
+        processed_frame, combined_dict = process_frame(frame)
+        current_frame_data = combined_dict  # Mettez à jour les données du cadre actuel
+        update_csv(combined_dict)  # Mise à jour du CSV en temps réel
         ret, buffer = cv2.imencode('.jpg', processed_frame)
         if ret:
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            process_and_send_data(combined_dict)
-    cap.release() 
-#pour la page drag and drop
-def process_and_send_data(detections):
-    """
-    Process the detections dictionary and send data to the client.
-    """
-    processed_data = []
-    for track_id, details in detections.items():
-        # Traitement pour les valeurs None et les formats de données
-        processed_entry = {
-            'ID': track_id,
-            'Classe': details.get('class', 'N/A'),
-            'Matricule': details.get('license_plate_text', 'N/A'),
-            'Score': details.get('score LP', 0),
-            'DateEntrée': details.get("date d'entrée", 'N/A'),
-            'DateSortie': details.get("date de sortie", 'N/A'),
-            'WaitTime': details.get('wait_time', 0) if details.get('wait_time') is not None else 'N/A',
-            'Zone': details.get('pompes_info', 'N/A')
-        }
-        processed_data.append(processed_entry)
-        logging.info(f"Processed data for track ID {track_id}: {processed_entry}")
+    cap.release()
+@app.route('/download_csv', methods=['GET'])
+def download_csv():
+    if os.path.exists(csv_file_path):
+        return send_file(csv_file_path, as_attachment=True, download_name='output.csv')
+    else:
+        return jsonify({'error': 'CSV file not found'}), 404
 
-    # Envoyer les données au client via SocketIO
-    socketio.emit('new_data', {'data': processed_data})
-    logging.info("Data sent to client.")
+@app.route('/get_frame_data', methods=['GET'])
+def get_frame_data():
+    global current_frame_data
+    return jsonify(current_frame_data)
+
+
+
 
     
 video_path = None  # Variable globale pour stocker le chemin du fichier vidéo
-
+video_capture = None 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    global video_path  # Utilisez la variable globale
+    global video_path, video_capture  # Utilisez la variable globale
     if 'file' in request.files:
         video_file = request.files['file']
-        filename = secure_filename(video_file.filename)
-        video_path = os.path.join(r'C:\Users\Utilisateur\Desktop\projet_flask', filename)
-        video_file.save(video_path)
-        return jsonify({'message': 'Fichier téléchargé avec succès', 'path': video_path})
+        if video_file and allowed_file(video_file.filename):
+            filename = secure_filename(video_file.filename)
+            video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            video_file.save(video_path)
+            video_capture = cv2.VideoCapture(video_path)  # Initialisez la capture vidéo
+            return jsonify({'message': 'Fichier téléchargé avec succès', 'path': video_path})
+        else:
+            return jsonify({'error': 'Type de fichier non autorisé'}), 400
     else:
         return jsonify({'error': 'Aucun fichier envoyé'}), 400
+
+
+
+
+
+
+
+
 
 
 @app.errorhandler(Exception)
@@ -808,11 +893,141 @@ def run_streamlit():
 
 
 
-if __name__ == '__main__':
-    # Démarrer Streamlit dans un thread séparé
-    app.secret_key = 'votre_cle_secrete'
+def total_vehicules(selected_date):
+    vehicules_collection = mongo.db.vehicules
+    start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+    end_date = start_date + timedelta(days=1)
+    total = vehicules_collection.count_documents({
+        'date d\'entrée': {'$gte': start_date, '$lt': end_date}
+    })
+    return total
+
+def debit_vehicules_j_ouvrable(selected_date):
+    vehicules_collection = mongo.db.vehicules
+    start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+    end_date = start_date + timedelta(days=7)
+
+    # Liste des jours ouvrables
+    jours_ouvrables = [0, 1, 2, 3, 4]  # Lundi (0) à Vendredi (4)
+
+    # Construire une requête pour inclure uniquement les jours ouvrables
+    pipeline = [
+        {
+            '$match': {
+                'date d\'entrée': {'$gte': start_date, '$lt': end_date}
+            }
+        },
+        {
+            '$project': {
+                'dayOfWeek': {'$dayOfWeek': '$date d\'entrée'}
+            }
+        },
+        {
+            '$match': {
+                'dayOfWeek': {'$in': [2, 3, 4, 5, 6]}  # Lundi à Vendredi dans MongoDB (1=Dimanche, 7=Samedi)
+            }
+        },
+        {
+            '$count': 'total'
+        }
+    ]
+
+    result = list(vehicules_collection.aggregate(pipeline))
+
+    if result:
+        total = result[0]['total']
+    else:
+        total = 0
+
+    return total
+
+
+def debit_taxi(selected_date):
+    vehicules_collection = mongo.db.vehicules
+    start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+    end_date = start_date + timedelta(days=1)
+    total = vehicules_collection.count_documents({
+        'date d\'entrée': {'$gte': start_date, '$lt': end_date},
+        'class': 'Taxi'
+    })
+    return total
+
+@app.route('/api/statistics', methods=['GET'])
+def get_statistics():
+    selected_date = request.args.get('date')
+    total = total_vehicules(selected_date)
+    debit_ouvrable = debit_vehicules_j_ouvrable(selected_date)
+    debit_taxi_value = debit_taxi(selected_date)
+    debit_vl_value = debit_vl(selected_date)
+    debit_pl_value = debit_pl(selected_date)
     
-    app.run(debug=True, host='0.0.0.0', port=5001,threaded=True)
+    return jsonify({
+        'total_vehicules': total,
+        'debit_ouvrable': debit_ouvrable,
+        'debit_taxi': debit_taxi_value,
+        'debit_vl': debit_vl_value,
+        'debit_pl': debit_pl_value
+    })
+
+
+@app.route('/api/test_total_vehicules', methods=['GET'])
+def test_total_vehicules():
+    selected_date = request.args.get('date')
+    total = total_vehicules(selected_date)
+    return jsonify({
+        'total_vehicules': total
+    })
+@app.route('/api/test_debit_vehicules_j_ouvrable', methods=['GET'])
+def test_debit_vehicules_j_ouvrable():
+    selected_date = request.args.get('date')
+    total = debit_vehicules_j_ouvrable(selected_date)
+    return jsonify({
+        'debit_ouvrable': total
+    })
+
+@app.route('/api/test_debit_taxi', methods=['GET'])
+def test_debit_taxi():
+    selected_date = request.args.get('date')
+    total = debit_taxi(selected_date)
+    return jsonify({
+        'debit_taxi': total
+    })
+#Test
+#http://127.0.0.1:5001/api/test_total_vehicules?date=2024-04-06
+#http://localhost:5000/api/test_debit_vehicules_j_ouvrable?date=2024-04-05
+#http://localhost:5000/api/test_debit_taxi?date=2024-04-05
+def debit_vl(selected_date):
+    vehicules_collection = mongo.db.vehicules
+    start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+    end_date = start_date + timedelta(days=1)
+
+    classes_vl = ['Car', 'Motorcycle', 'Taxi']
+    total = vehicules_collection.count_documents({
+        'date d\'entrée': {'$gte': start_date, '$lt': end_date},
+        'class': {'$in': classes_vl}
+    })
+    return total
+def debit_pl(selected_date):
+    vehicules_collection = mongo.db.vehicules
+    start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+    end_date = start_date + timedelta(days=1)
+
+    classes_pl = ['Construction machine', 'Big Truck', 'Small Truck']
+    total = vehicules_collection.count_documents({
+        'date d\'entrée': {'$gte': start_date, '$lt': end_date},
+        'class': {'$in': classes_pl}
+    })
+    return total
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+    
+
+
+    app.run( host='127.0.0.1', port=5001,debug=True)
 
     
 

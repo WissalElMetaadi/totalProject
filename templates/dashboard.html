@@ -34,7 +34,8 @@
  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
         <link rel="stylesheet" href="{{ url_for('static', filename='css/newdash.css') }}">
         <style>
-          .dashboardsentiment {
+
+        .dashboardsentiment {
             position: relative;
             
         }
@@ -42,7 +43,7 @@
             color: rgb(0, 0, 0);
             font-size: 1rem; /* Taille de la police */
             font-weight: bold; /* Poids de la police */
-            margin-bottom: 20px; /* Espacement entre le titre et la charte */
+            padding-bottom: 215px; /* Espacement entre le titre et la charte */
             text-align: center; /* Alignement du texte */
         }
         .sentiment-pie {
@@ -194,45 +195,43 @@
                         </div>
                     </div>
                     
-                    <div class="icon-container">
-                        <button class="calendar-btn">
-                            <i class="fas fa-calendar-alt"></i>
-                        </button>
-                    </div>
+                    
                 </div>
                 
                 <div class="stats-container">
                     
-                    <div class="stats-container">
-                        
-                        <div class="stat-card" id="notificationCard">
-                            <div class="tnc-icon-bg">
-                                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Clients Icon">
-                            </div>
-                            <div class="tnc-stat-details">
-                                <h3>Notifications et Alertes</h3>
-                                <div id="notificationMessages">
-                                    <p class="tnc-stat-value">Aucune notification pour le moment.</p>
-                                </div>
-                                <button class="tnc-btn-info" id="viewDetailsButton" style="display: none;" onclick="openModal()">Voir les détails</button>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Notifications and Alert Card -->
+<div class="stats-container2">
+    <div class="stat-card2" id="notificationCard">
+        <div class="tnc-icon-bg">
+            <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Clients Icon">
+        </div>
+        <div class="tnc-stat-details">
+            <h3>Notifications et Alertes</h3>
+            <div id="notificationMessages">
+                <p class="tnc-stat-value">Aucune notification pour le moment.</p>
+            </div>
+            <button class="tnc-btn-info" id="viewDetailsButton" style="display: none;" onclick="openModal()">Voir les détails</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for User Details -->
+<div class="tnc-modal" id="userDetailsModal">
+    <div class="tnc-modal-dialog">
+        <div class="tnc-modal-content">
+            <div class="tnc-modal-header">
+                <h5 class="tnc-modal-title">Détails de l'Utilisateur</h5>
+                <button type="button" class="tnc-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="tnc-modal-body" id="userDetailsBody">
+                <!-- User details will be populated here dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
                     
-                    <!-- Modale pour afficher les détails de l'utilisateur -->
-                    <div class="tnc-modal" id="userDetailsModal">
-                        <div class="tnc-modal-dialog">
-                            <div class="tnc-modal-content">
-                                <div class="tnc-modal-header">
-                                    <h5 class="tnc-modal-title">Détails de l'Utilisateur</h5>
-                                    <button type="button" class="tnc-close" onclick="closeModal()">&times;</button>
-                                </div>
-                                <div class="tnc-modal-body" id="userDetailsBody">
-                                    <!-- Détails de l'utilisateur à remplir dynamiquement -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 
                     
                     
@@ -313,7 +312,7 @@
                                     <img src="{{ url_for('static', filename='images/claqueCM.png') }}" alt="Construction Machine Icon">
                                 </div>
                                 <div class="stat-details">
-                                    <span>Construction Machine</span>
+                                    <span>CM</span>
                                     <span class="stat-value" id="construction-machine-value">0</span>
                                 </div>
                             </div>
@@ -322,49 +321,46 @@
                     
                 
                 
-                <h1>Daily Statics</h1>
+                
                 
 
                 <div class="container-charts">
-                    
-                    
-                    
-                    
                     <div class="chart-container">
                         <div class="dashboard-unique">
                             <div class="box-unique total-unique">
                                 <div>
-                                    <div class="number-unique">1025</div>
+                                    <div class="number-unique">0</div>
                                     <div>Total des véhicules</div>
                                 </div>
                             </div>
                             <div class="box-unique vehicules-unique">
                                 <div>
                                     <div>Débit Véhicules<br>J.Ouvrable</div>
-                                    <div class="number-unique">865</div>
+                                    <div class="number-unique">0</div>
                                 </div>
                             </div>
                             <div class="box-unique taxis-unique">
                                 <div>
                                     <div>Débit Taxi</div>
-                                    <div class="number-unique">263</div>
+                                    <div class="number-unique">0</div>
                                 </div>
                             </div>
                             <div class="box-unique pl-unique">
                                 <div>
-                                    <div>Débit PL</div>
-                                    <div class="number-unique">160</div>
+                                    <div>Débit VL</div>
+                                    <div class="number-unique">0</div>
                                 </div>
                             </div>
                             <div class="box-unique capture-unique">
                                 <div>
-                                    <div>Taux de captation sur<br>Route Principale</div>
-                                    <div class="number-unique">1025</div>
-                                    <div class="fraction-unique">/5214</div>
+                                    <div>Débit PL</div>
+                                    <div class="number-unique">0</div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                
+               
                     <div class="chart-container-green">
                         <h2 class="chart-title-green">Top Fidèles Clients</h2>
                         <div id="pyramid-chart-container" class="green-chart">
