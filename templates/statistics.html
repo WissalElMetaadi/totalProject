@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.5/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="icon" href="data:,"> <!-- Add a dummy favicon link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- jQuery UI - assurez-vous d'inclure à la fois le JS et le CSS -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <!-- DataTables JS (Dépend de jQuery) -->
+    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet JS (Pour les cartes) -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body.unique-body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .unique-filter-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .unique-filter-type,
+        .unique-date-filters,
+        .unique-filter-buttons {
+            display: flex;
+            align-items: center;
+        }
+
+        .unique-filter-type label,
+        .unique-date-filter label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .unique-filter-type input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        .unique-date-filters {
+            flex-grow: 1;
+            justify-content: space-around;
+        }
+
+        .unique-date-filter {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+
+        .unique-date-filter input[type="date"] {
+            margin-left: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .unique-filter-buttons button {
+            padding: 10px 15px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .unique-filter-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 768px) {
+            .unique-filter-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .unique-date-filters {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .unique-filter-buttons {
+                margin-top: 10px;
+            }
+        }
+
+        .unique-table-container {
+            width: 100%;
+            max-width: 100%; /* Adjust max-width as needed */
+            margin: 0 auto;
+            overflow-x: auto; /* Enable horizontal scrolling if needed */
+        }
+
+        table.unique-data-table {
+            width: 100%;
+            max-width: 100%; /* Adjust max-width as needed */
+            margin: 0 auto;
+            border-collapse: collapse;
+            border-spacing: 0;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        table.unique-data-table thead th {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table.unique-data-table tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            word-wrap: break-word;
+        }
+
+        table.unique-data-table tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table.unique-data-table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        @media (max-width: 500px) {
+            .unique-table-container {
+                max-width: 100%;
+            }
+
+            table.unique-data-table {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+
+        .unique-stats-section-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 50px;
+            padding-top: 50px;
+        }
+
+        .unique-stats-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 48%;
+        }
+
+        .unique-stats-section h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .unique-stats-section table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            border: 1px solid #ddd;
+        }
+
+        .unique-stats-section th, .unique-stats-section td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .unique-stats-section th {
+            background-color: #f1f1f1;
+        }
+
+        .unique-metrics-section {
+            display: flex;
+            justify-content: space-between;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .unique-metric {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 23%; /* Adjust the width to fit four metrics */
+        }
+
+        .unique-metric:last-child {
+            margin-bottom: 0;
+        }
+
+        .unique-metric-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        /* Modal Styles */
+        .unique-modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgb(0,0,0); 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px; 
+        }
+
+        .unique-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; 
+            max-width: 600px; 
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .unique-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .unique-close:hover,
+        .unique-close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .unique-modal-header {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .unique-modal-body {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.print.min.js"></script>
+</head>
+<body class="unique-body">
+    
+    <div class="unique-filter-container">
+        <div class="unique-filter-type">
+            <label for="unique_date_filter_type">Type of Date Filter:</label>
+            <input type="radio" id="unique_day" name="unique_date_filter_type" value="day" checked>
+            <label for="unique_day">Day</label>
+            <input type="radio" id="unique_week" name="unique_date_filter_type" value="week">
+            <label for="unique_week">Week</label>
+        </div>
+        
+        <div class="unique-date-filters">
+            <div id="unique-day-filter" class="unique-date-filter">
+                <label for="unique_filter_date">Date:</label>
+                <input type="date" id="unique_filter_date" name="unique_filter_date">
+            </div>
+    
+            <div id="unique-week-filter" class="unique-date-filter" style="display: none;">
+                <label for="unique_start_date">Start Date:</label>
+                <input type="date" id="unique_start_date" name="unique_start_date">
+                <label for="unique_end_date">End Date:</label>
+                <input type="date" id="unique_end_date" name="unique_end_date">
+            </div>
+        </div>
+    
+        <div class="unique-filter-buttons">
+            <button onclick="uniqueFilterData()">Filter Data</button>
+            <a href="#" id="downloadPdf" class="unique-button">Download Data and Reports</a>
+        </div>
+    </div>
+    
+    <div class="unique-metrics-section">
+        <div class="unique-metric">
+            <div>Total Vehicles</div>
+            <div class="unique-metric-value">1069</div>
+        </div>
+        <div class="unique-metric">
+            <div>Débit VL</div>
+            <div class="unique-metric-value">5</div>
+        </div>
+        <div class="unique-metric">
+            <div>Débit VP</div>
+            <div class="unique-metric-value">5</div>
+        </div>
+        <div class="unique-metric">
+            <div>Number of Unique Zones</div>
+            <div class="unique-metric-value">5</div>
+        </div>
+    </div>
+    
+
+    <div class="unique-table-container">
+        <table id="unique-data-table" class="display unique-data-table">
+            <thead>
+                <tr>
+                    <!-- Column headers will be populated dynamically -->
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    
+
+    <!-- Modal Structure -->
+    <div id="uniqueModal" class="unique-modal">
+        <div class="unique-modal-content">
+            <span class="unique-close">&times;</span>
+            <div class="unique-modal-header">Vehicle Details</div>
+            <div class="unique-modal-body" id="unique-modal-body">
+                <!-- Vehicle details will be inserted here dynamically -->
+            </div>
+        </div>
+    </div>
+    <div class="unique-stats-section-container">
+        <div class="unique-stats-section">
+            <h3>Statistics for Vehicles by Class</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vehicle Class</th>
+                        <th>Number of Vehicles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Motorcycle</td><td>266</td></tr>
+                    <tr><td>Construction Machine</td><td>220</td></tr>
+                    <tr><td>Car</td><td>189</td></tr>
+                    <tr><td>Taxi</td><td>173</td></tr>
+                    <tr><td>Small Truck</td><td>152</td></tr>
+                    <tr><td>Big Truck</td><td>69</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="unique-stats-section">
+            <h3>Analysis by Zone and Weight Category</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ZoneTotal</th>
+                        <th>Heavy Weight</th>
+                        <th>Light Weight</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Air</td><td>56</td><td>188</td></tr>
+                    <tr><td>Entrée</td><td>64</td><td>189</td></tr>
+                    <tr><td>Lavage</td><td>73</td><td>185</td></tr>
+                    <tr><td>Pompe</td><td>76</td><td>181</td></tr>
+                    <tr><td>Sortie</td><td>20</td><td>37</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+
+  
+        <div  class="hidden">
+            <div class="charts-row">
+                <div class="chart-container">
+                    <h2 class="chart-title">Répartition des Véhicules par Classe dans la Journée</h2>
+                    <canvas id="vehicleChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2 class="chart-title">Nombre Total de Véhicules par Heure</h2>
+                    <canvas id="vehiclesHourChart"></canvas>
+                </div>
+            </div>
+            <div class="charts-row">
+                <div class="chart-container">
+                    <h2 class="chart-title">Utilisation des Pompes</h2>
+                    <canvas id="pumpUsageChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2 class="chart-title">Temps d'Attente Moyen par Classe de Véhicule</h2>
+                    <canvas id="avgWaitTimeChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">Top Fidèles Clients</h2>
+                <div id="pyramid-chart-container"></div>
+            </div>
+        </div>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('input[name="unique_date_filter_type"]').change(function() {
+                if (this.value === 'day') {
+                    $('#unique-day-filter').show();
+                    $('#unique-week-filter').hide();
+                } else {
+                    $('#unique-day-filter').hide();
+                    $('#unique-week-filter').show();
+                }
+            });
+
+            // Load initial data
+            $.get('/initial_data', function(data) {
+                const jsonData = JSON.parse(data);
+                const columns = Object.keys(jsonData[0]).map(col => ({ title: col, data: col }));
+                const table = $('#unique-data-table').DataTable({
+                    data: jsonData,
+                    columns: columns,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        'copy', 'csv', 'excel', 'pdf', 'print'
+                    ],
+                    autoWidth: false, // Disable auto width calculation
+                    columnDefs: [
+                        { width: "150px", targets: "_all" } // Set width for all columns
+                    ]
+                });
+
+                // Add click event to rows
+                $('#unique-data-table tbody').on('click', 'tr', function () {
+                    const data = table.row(this).data();
+                    showUniqueModal(data);
+                });
+            });
+
+            // Get the modal
+            var modal = document.getElementById("uniqueModal");
+
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("unique-close")[0];
+
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function() {
+                modal.style.display = "none";
+            }
+
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        });
+
+        function uniqueFilterData() {
+            const date_filter_type = $('input[name="unique_date_filter_type"]:checked').val();
+            const filter_date = $('#unique_filter_date').val();
+            const start_date = $('#unique_start_date').val();
+            const end_date = $('#unique_end_date').val();
+
+            const postData = {
+                date_filter_type: date_filter_type
+            };
+
+            if (date_filter_type === 'day' && filter_date) {
+                postData.filter_date = filter_date;
+            } else if (date_filter_type === 'week' && start_date && end_date) {
+                postData.start_date = start_date;
+                postData.end_date = end_date;
+            }
+
+            $.post('/fetch_data', postData, function(data) {
+                const jsonData = JSON.parse(data);
+                const columns = Object.keys(jsonData[0]).map(col => ({ title: col, data: col }));
+                const table = $('#unique-data-table').DataTable({
+                    data: jsonData,
+                    columns: columns,
+                    destroy: true,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        'copy', 'csv', 'excel', 'pdf', 'print'
+                    ],
+                    autoWidth: false, // Disable auto width calculation
+                    columnDefs: [
+                        { width: "150px", targets: "_all" } // Set width for all columns
+                    ]
+                });
+
+                // Add click event to rows
+                $('#unique-data-table tbody').on('click', 'tr', function () {
+                    const data = table.row(this).data();
+                    showUniqueModal(data);
+                });
+            });
+        }
+
+        function uniqueDownloadExcel() {
+            const date_filter_type = $('input[name="unique_date_filter_type"]:checked').val();
+            const filter_date = $('#unique_filter_date').val();
+            const start_date = $('#unique_start_date').val();
+            const end_date = $('#unique_end_date').val();
+
+            const form = $('<form method="POST" action="/download_excel">');
+            form.append($('<input>').attr('type', 'hidden').attr('name', 'date_filter_type').attr('value', date_filter_type));
+            if (date_filter_type === 'day' && filter_date) {
+                form.append($('<input>').attr('type', 'hidden').attr('name', 'filter_date').attr('value', filter_date));
+            } else if (date_filter_type === 'week' && start_date && end_date) {
+                form.append($('<input>').attr('type', 'hidden').attr('name', 'start_date').attr('value', start_date));
+                form.append($('<input>').attr('type', 'hidden').attr('name', 'end_date').attr('value', end_date));
+            }
+
+            $('body').append(form);
+            form.submit();
+            form.remove();
+        }
+
+        function showUniqueModal(data) {
+            var modal = document.getElementById("uniqueModal");
+            var modalBody = document.getElementById("unique-modal-body");
+            modalBody.innerHTML = '';
+
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const element = document.createElement("p");
+                    element.innerHTML = `<strong>${key}:</strong> ${formatDateIfNeeded(key, data[key])}`;
+                    modalBody.appendChild(element);
+                }
+            }
+
+            modal.style.display = "block";
+        }
+
+        function formatDateIfNeeded(key, value) {
+            if (key === "date d'entrée" || key === "date de sortie") {
+                return new Date(value).toLocaleDateString('en-GB'); // Format date as needed
+            }
+            return value;
+        }
+
+        
+
+
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const backgroundColors = [
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+                'rgba(255, 159, 64, 0.6)',
+                'rgba(199, 199, 199, 0.6)'
+            ];
+            const borderColors = [
+                'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
+                'rgba(159, 159, 159, 1)'
+            ];
+            const dateInput = document.getElementById('dateInput');
+
+            const createChart = (ctx, type, data, options) => {
+                return new Chart(ctx, {
+                    type: type,
+                    data: data,
+                    options: options
+                });
+            };
+
+            const updateDataForVehicleChart = () => {
+                const chosenDate = dateInput.value;
+                fetch(`/data?date=${chosenDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('vehicleChart').getContext('2d');
+                    if (window.myVehicleChart) window.myVehicleChart.destroy();
+                    window.myVehicleChart = createChart(ctx, 'bar', {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            label: 'Nombre de véhicules par classe',
+                            data: Object.values(data),
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 1
+                        }]
+                    }, {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { 
+                            y: { beginAtZero: true } 
+                        },
+                        legend: { 
+                            display: true, 
+                            position: 'top', 
+                            labels: { 
+                                fontColor: '#333', 
+                                usePointStyle: true 
+                            } 
+                        },
+                        title: { display: false }
+                    });
+                });
+            };
+
+            const updateDataForHourlyChart = () => {
+                const chosenDate = dateInput.value;
+                fetch(`/data_par_heure?date=${chosenDate}`)
+                .then(response => response.json())
+                .then(allData => {
+                    const data = allData.vehicles_per_hour;
+                    const ctx = document.getElementById('vehiclesHourChart').getContext('2d');
+                    if (window.myChart) window.myChart.destroy();
+                    window.myChart = createChart(ctx, 'line', {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            label: 'Nombre total de véhicules par heure',
+                            data: Object.values(data),
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            fill: false,
+                        }]
+                    }, {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { 
+                            x: {
+                                ticks: {
+                                    maxRotation: 0,
+                                    minRotation: 0
+                                }
+                            },
+                            y: { 
+                                beginAtZero: true 
+                            }
+                        },
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 10,
+                                top: 10,
+                                bottom: 40
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    fontColor: '#333',
+                                    usePointStyle: true
+                                }
+                            },
+                            title: {
+                                display: false
+                            }
+                        }
+                    });
+                });
+            };
+
+            const updateDataForPumpUsageChart = () => {
+                const chosenDate = dateInput.value;
+                fetch(`/pump_data?date=${chosenDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('pumpUsageChart').getContext('2d');
+                    if (window.myPumpUsageChart) window.myPumpUsageChart.destroy();
+                    window.myPumpUsageChart = createChart(ctx, 'pie', {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            label: 'Utilisation des Pompes',
+                            data: Object.values(data),
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 1
+                        }]
+                    }, {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    });
+                });
+            };
+
+            const updateDataForAvgWaitTimeChart = () => {
+                const chosenDate = dateInput.value;
+                fetch(`/avg_wait_time_by_class?date=${chosenDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('avgWaitTimeChart').getContext('2d');
+                    if (window.myAvgWaitTimeChart) window.myAvgWaitTimeChart.destroy();
+                    window.myAvgWaitTimeChart = createChart(ctx, 'bar', {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            label: 'Temps d\'attente moyen (en secondes)',
+                            data: Object.values(data),
+                            backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    }, {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { 
+                            y: { beginAtZero: true } 
+                        }
+                    });
+                });
+            };
+
+            const updateTopClientsForDate = () => {
+                const chosenDate = dateInput.value;
+                if (chosenDate) {
+                    fetch(`/get-top-clients?date=${chosenDate}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const container = document.getElementById('pyramid-chart-container');
+                        container.innerHTML = '';
+                        data.sort((a, b) => b.value - a.value);
+                        data.forEach((item, index) => {
+                            const barContainer = document.createElement('div');
+                            barContainer.style.display = 'flex';
+                            barContainer.style.alignItems = 'center';
+                            barContainer.style.marginBottom = '10px';
+
+                            const label = document.createElement('span');
+                            label.textContent = `${item.label}: `;
+                            label.style.minWidth = '100px';
+
+                            const bar = document.createElement('div');
+                            bar.style.height = '20px';
+                            bar.style.width = `${Math.max(item.value, 1) * 10}px`;
+                            bar.style.backgroundColor = index % 2 === 0 ? '#4e79a7' : '#f28e2b';
+                            bar.textContent = item.value;
+                            bar.style.color = 'white';
+                            bar.style.display = 'flex';
+                            bar.style.alignItems = 'center';
+                            bar.style.justifyContent = 'center';
+                            bar.style.textAlign = 'right';
+                            bar.style.paddingRight = '5px';
+
+                            barContainer.appendChild(label);
+                            barContainer.appendChild(bar);
+                            container.appendChild(barContainer);
+                        });
+                    });
+                }
+            };
+
+            const loadData = (date) => {
+                updateDataForVehicleChart(date);
+                updateDataForHourlyChart(date);
+                updateDataForPumpUsageChart(date);
+                updateDataForAvgWaitTimeChart(date);
+                updateTopClientsForDate(date);
+            }
+
+            // Set default date to 2024-04-05
+            const defaultDate = '2024-04-05';
+            dateInput.value = defaultDate;
+            loadData(defaultDate);
+
+            dateInput.addEventListener('change', () => {
+                const chosenDate = dateInput.value;
+                loadData(chosenDate);
+            });
+
+            // Fonction pour télécharger le PDF avec jsPDF
+            document.getElementById('downloadPdf').addEventListener('click', function () {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+
+                // Ajout des graphiques au PDF avec des tailles réduites et des titres
+                pdf.setFontSize(16);
+                pdf.text('Répartition des Véhicules par Classe dans la Journée', 15, 20);
+                pdf.addImage(window.myVehicleChart.toBase64Image(), 'PNG', 15, 30, 180, 90);
+                
+                pdf.addPage();
+                pdf.text('Nombre Total de Véhicules par Heure', 15, 20);
+                pdf.addImage(window.myChart.toBase64Image(), 'PNG', 15, 30, 180, 90);
+                
+                pdf.addPage();
+                pdf.text('Utilisation des Pompes', 15, 20);
+                pdf.addImage(window.myPumpUsageChart.toBase64Image(), 'PNG', 15, 30, 180, 90);
+                
+                pdf.addPage();
+                pdf.text('Temps d\'Attente Moyen par Classe de Véhicule', 15, 20);
+                pdf.addImage(window.myAvgWaitTimeChart.toBase64Image(), 'PNG', 15, 30, 180, 90);
+
+                // Télécharger le PDF
+                pdf.save('rapport.pdf');
+            });
+        });
+
+
+
+       
+    </script>
+</body>
+</html>

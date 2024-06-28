@@ -32,7 +32,6 @@ from flask import Flask
 
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
 app.secret_key = 'votre_cle_secrete_ici'  # Définissez votre clé secrète ici
 current_frame_data = None  # Variable pour stocker les données du cadre actuel
 is_processing = False  # Indicateur pour contrôler le traitement
@@ -456,6 +455,9 @@ def interface_user():
 @app.route('/governorates')
 def governorates():
     return render_template('governorates.html')
+@app.route('/statistics')
+def statistics():
+    return render_template('statistics.html')
 
 @app.route('/PowerBiDash')
 def PowerBiDash():
@@ -677,7 +679,7 @@ def pump_data():
     date_query = request.args.get('date', None)
     
     # Utiliser la collection 'vehicles'
-    vehicles_collection = mongo.db.vehicles
+    vehicules_collection = mongo.db.vehicules
 
     # Construire la requête MongoDB
     query = {}
@@ -692,7 +694,7 @@ def pump_data():
             return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD."}), 400
 
     # Interroger MongoDB
-    cursor = vehicles_collection.find(query)
+    cursor = vehicules_collection.find(query)
     
     # Convertir le curseur en liste de dictionnaires
     vehicules_list = list(cursor)
@@ -1019,6 +1021,124 @@ def debit_pl(selected_date):
     })
     return total
 
+
+##
+#station = mongo.db.stations.find_one({'_id': user['station_id']})
+# station_name = station['name'] if station else 'Unknown'
+#### page statistics
+
+# Function to map station_id to station name
+# Function to map station_id to station name
+def get_station_name(station_id):
+    try:
+        logging.debug(f"Original Station ID: {station_id}")
+        
+        station_id = ObjectId(station_id)
+        logging.debug(f"Converted Station ID: {station_id}")
+        station = mongo.db.stations.find_one({'_id': station_id})
+        logging.debug(f"Station Found: {station}")
+        return station['name'] if station else "Unknown Station"
+    except Exception as e:
+        logging.error("Error fetching station name: %s", e)
+        return "Unknown Station"
+
+@app.route('/')
+def index():
+    return render_template('statistics.html')
+
+def encode_utf8(df):
+    for col in df.columns:
+        if df[col].dtype == object:
+            df[col] = df[col].map(lambda x: x.encode('utf-8', 'ignore').decode('utf-8') if isinstance(x, str) else x)
+    return df
+
+def process_data(data):
+    for record in data:
+        record.pop('_id', None)
+        if 'station_id' in record:
+            station = mongo.db.stations.find_one({'_id': ObjectId(record['station_id'])})
+            record['station'] = station['name'] if station else 'Unknown'
+            record.pop('station_id', None)
+        if 'date d\'entrée' in record:
+            record['date d\'entrée'] = record['date d\'entrée'].strftime('%Y-%m-%d') if isinstance(record['date d\'entrée'], datetime) else str(record['date d\'entrée'])
+        if 'date de sortie' in record:
+            record['date de sortie'] = record['date de sortie'].strftime('%Y-%m-%d') if isinstance(record['date de sortie'], datetime) else str(record['date de sortie'])
+    return data
+
+@app.route('/fetch_data', methods=['POST'])
+def fetch_data():
+    try:
+        date_filter_type = request.form.get('date_filter_type')
+        filter_date = request.form.get('filter_date')
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+
+        query = {}
+        if date_filter_type == 'day' and filter_date:
+            query['date d\'entrée'] = pd.to_datetime(filter_date)
+        elif date_filter_type == 'week' and start_date and end_date:
+            query['date d\'entrée'] = {
+                '$gte': pd.to_datetime(start_date),
+                '$lte': pd.to_datetime(end_date)
+            }
+
+        vehicules_collection = mongo.db.vehicules
+        data = list(vehicules_collection.find(query))
+        data = process_data(data)
+        df = pd.DataFrame(data)
+
+        df = encode_utf8(df)
+
+        return df.to_json(orient='records')
+    except Exception as e:
+        logging.error("Error fetching data: %s", e)
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/download_excel', methods=['POST'])
+def download_excel():
+    try:
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+
+        query = {}
+        if start_date and end_date:
+            query['date d\'entrée'] = {
+                '$gte': pd.to_datetime(start_date),
+                '$lte': pd.to_datetime(end_date)
+            }
+
+        vehicules_collection = mongo.db.vehicules
+        data = list(vehicules_collection.find(query))
+        data = process_data(data)
+        df = pd.DataFrame(data)
+
+        df = encode_utf8(df)
+
+        # Create a bytes buffer for the Excel file
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Vehicules')
+
+        output.seek(0)
+        return send_file(output, attachment_filename="filtered_data.xlsx", as_attachment=True)
+    except Exception as e:
+        logging.error("Error generating Excel file: %s", e)
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/initial_data', methods=['GET'])
+def initial_data():
+    try:
+        vehicules_collection = mongo.db.vehicules
+        data = list(vehicules_collection.find().limit(100))  # Limit to first 100 records for display
+        data = process_data(data)
+        df = pd.DataFrame(data)
+
+        df = encode_utf8(df)
+
+        return df.to_json(orient='records')
+    except Exception as e:
+        logging.error("Error fetching initial data: %s", e)
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
