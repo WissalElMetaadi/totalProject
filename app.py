@@ -496,6 +496,12 @@ def DragAndDrop():
 @app.route('/modele')
 def modele():
     return render_template('modele.html')
+from flask_cors import CORS
+CORS(app)
+from flask import Flask, send_from_directory
+@app.route('/pdf/<filename>')
+def serve_pdf(filename):
+    return send_from_directory(app.static_folder, filename)
 
 @app.route('/charts_jour')
 def charts_jour():
@@ -570,6 +576,10 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route('/statics')
+def statics():
+    
+    return render_template(('statics.html'))
 
 @app.route('/dashboard')
 @login_required
@@ -608,23 +618,35 @@ from datetime import datetime, timedelta
 
 @app.route('/data_par_heure')
 def data_par_heure():
-    date_query = request.args.get('date', None)
+    filter_type = request.args.get('filter_type', 'day')
+    start_date_query = request.args.get('start_date')
+    end_date_query = request.args.get('end_date') if filter_type == 'week' else start_date_query
+
+    if not start_date_query or not end_date_query:
+        return jsonify({'error': 'Missing date parameters'}), 400
+
+    start_date = datetime.strptime(start_date_query, '%Y-%m-%d')
+    end_date = datetime.strptime(end_date_query, '%Y-%m-%d') + timedelta(days=1)
+
     vehicles_collection = mongo.db.vehicules
 
-    match_stage = {"$match": {"class": {"$ne": "Worker"}}}
-    if date_query:
-        date = datetime.strptime(date_query, '%Y-%m-%d')
-        match_stage["$match"]["date d\'entrée"] = {"$gte": date, "$lt": date + timedelta(days=1)}
+    if filter_type == 'day':
+        pipeline = [
+            {"$match": {"date d'entrée": {"$gte": start_date, "$lt": end_date}}},
+            {"$group": {"_id": {"$hour": "$date d'entrée"}, "count": {"$sum": 1}}}
+        ]
+    elif filter_type == 'week':
+        pipeline = [
+            {"$match": {"date d'entrée": {"$gte": start_date, "$lt": end_date}}},
+            {"$group": {"_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$date d'entrée"}}, "count": {"$sum": 1}}}
+        ]
+    else:
+        return jsonify({'error': 'Invalid filter type'}), 400
 
-    pipeline = [
-        match_stage,
-        {"$group": {"_id": {"$hour": "$date d\'entrée"}, "count": {"$sum": 1}}}
-    ]
     result = list(vehicles_collection.aggregate(pipeline))
-    vehicles_per_hour = {doc["_id"]: doc["count"] for doc in result}
+    data = {doc["_id"]: doc["count"] for doc in result}
 
-    return jsonify({'vehicles_per_hour': vehicles_per_hour})
-
+    return jsonify(data)
 
 
 
@@ -634,16 +656,20 @@ def data_par_heure():
 
 @app.route('/avg_wait_time_by_class')
 def get_avg_wait_time_by_class():
-    date_query = request.args.get('date', None)
+    filter_type = request.args.get('filter_type', 'day')
+    start_date_query = request.args.get('start_date')
+    end_date_query = request.args.get('end_date') if filter_type == 'week' else start_date_query
+
+    if not start_date_query or not end_date_query:
+        return jsonify({'error': 'Missing date parameters'}), 400
+
+    start_date = datetime.strptime(start_date_query, '%Y-%m-%d')
+    end_date = datetime.strptime(end_date_query, '%Y-%m-%d') + timedelta(days=1)
+
     vehicles_collection = mongo.db.vehicules
-
-    match_stage = {"$match": {"class": {"$ne": "Worker"}}}
-    if date_query:
-        date = datetime.strptime(date_query, '%Y-%m-%d')
-        match_stage["$match"]["date d'entrée"] = {"$gte": date, "$lt": date + timedelta(days=1)}
-
+    match_stage = {"date d'entrée": {"$gte": start_date, "$lt": end_date}}
     pipeline = [
-        match_stage,
+        {"$match": match_stage},
         {"$group": {"_id": "$class", "avg_wait_time": {"$avg": "$wait_time"}}}
     ]
     result = list(vehicles_collection.aggregate(pipeline))
@@ -652,16 +678,23 @@ def get_avg_wait_time_by_class():
     return jsonify(avg_wait_time_by_class)
 
 
-
 @app.route('/data')
 def data():
-    date_query = request.args.get('date', None)
-    vehicles_collection = mongo.db.vehicules
+    filter_type = request.args.get('filter_type', 'day')
+    start_date_query = request.args.get('start_date')
+    end_date_query = request.args.get('end_date') if filter_type == 'week' else start_date_query
 
-    match_stage = {"$match": {"class": {"$ne": "Worker"}}}
-    if date_query:
-        date = datetime.strptime(date_query, '%Y-%m-%d')
-        match_stage["$match"]["date d\'entrée"] = {"$gte": date, "$lt": date + timedelta(days=1)}
+    if not start_date_query or not end_date_query:
+        return jsonify({'error': 'Missing date parameters'}), 400
+
+    try:
+        start_date = datetime.strptime(start_date_query, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date_query, '%Y-%m-%d') + timedelta(days=1)
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 400
+
+    vehicles_collection = mongo.db.vehicules
+    match_stage = {"$match": {"class": {"$ne": "Worker"}, "date d'entrée": {"$gte": start_date, "$lt": end_date}}}
 
     pipeline = [
         match_stage,
@@ -672,38 +705,32 @@ def data():
 
     return jsonify(vehicle_counts)
 
+
 mongo = PyMongo(app)
 @app.route('/pump_data')
 def pump_data():
-    # Récupérer la date à partir des paramètres de requête
-    date_query = request.args.get('date', None)
-    
-    # Utiliser la collection 'vehicles'
+    filter_type = request.args.get('filter_type', 'day')
+    start_date_query = request.args.get('start_date')
+    end_date_query = request.args.get('end_date') if filter_type == 'week' else start_date_query
+
+    if not start_date_query or not end_date_query:
+        return jsonify({'error': 'Missing date parameters'}), 400
+
+    try:
+        start_date = datetime.strptime(start_date_query, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date_query, '%Y-%m-%d') + timedelta(days=1)
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 400
+
     vehicules_collection = mongo.db.vehicules
+    match_stage = {"date d'entrée": {"$gte": start_date, "$lt": end_date}}
 
-    # Construire la requête MongoDB
-    query = {}
-    if date_query:
-        try:
-            # Convertir la date en objet datetime
-            date_query_dt = datetime.strptime(date_query, '%Y-%m-%d')
-            start_date = datetime(date_query_dt.year, date_query_dt.month, date_query_dt.day)
-            end_date = datetime(date_query_dt.year, date_query_dt.month, date_query_dt.day, 23, 59, 59)
-            query['date d\'entrée'] = {'$gte': start_date, '$lte': end_date}
-        except ValueError:
-            return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD."}), 400
-
-    # Interroger MongoDB
-    cursor = vehicules_collection.find(query)
-    
-    # Convertir le curseur en liste de dictionnaires
+    cursor = vehicules_collection.find(match_stage)
     vehicules_list = list(cursor)
     
-    # Si la liste est vide, retourner un message approprié
     if not vehicules_list:
         return jsonify({"message": "No data found for the given date."}), 404
 
-    # Calculer l'utilisation des pompes pour les données filtrées
     pump_usage = {}
     for vehicule in vehicules_list:
         pump_info = vehicule.get('pompes_info')
@@ -712,13 +739,68 @@ def pump_data():
                 pump_usage[pump_info] += 1
             else:
                 pump_usage[pump_info] = 1
-    
-    # Retourner les données au format JSON
+
     return jsonify(pump_usage)
 
 
-@app.route('/get-top-clients', methods=['GET'])
+@app.route('/get-top-clients')
 def get_top_clients():
+    filter_type = request.args.get('filter_type', 'day')
+    start_date_query = request.args.get('start_date')
+    end_date_query = request.args.get('end_date') if filter_type == 'week' else start_date_query
+
+    if not start_date_query or not end_date_query:
+        return jsonify({'error': 'Missing date parameters'}), 400
+
+    try:
+        start_date = datetime.strptime(start_date_query, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date_query, '%Y-%m-%d') + timedelta(days=1)
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 400
+
+    vehicles_collection = mongo.db.vehicules
+
+    match_stage = {
+        "$match": {
+            "date d'entrée": {"$gte": start_date, "$lt": end_date}
+        }
+    }
+
+    pipeline = [
+        match_stage,
+        {"$group": {"_id": "$license_plate_text", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 5}
+    ]
+    
+    result = list(vehicles_collection.aggregate(pipeline))
+    top_clients = {doc["_id"]: doc["count"] for doc in result}
+
+    pyramid_data = [{"label": lp, "value": count} for lp, count in top_clients.items()]
+    
+    return jsonify(pyramid_data)
+
+
+
+@app.route('/registre', methods=['GET', 'POST'])
+def registre():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        password_hash = generate_password_hash(password)
+
+        new_user = User(username=username, password_hash=password_hash)
+        db.session.add(new_user)
+        db.session.commit()
+
+        # Redirigez vers la page de connexion après l'inscription réussie
+        return redirect(url_for('login'))
+
+    return render_template('registre.html')
+
+
+@app.route('/get-top-clients1', methods=['GET'])
+def get_top_clients1():
     chosen_date = request.args.get('date', None)
     
     # Charger les données et filtrer selon la date choisie
@@ -742,26 +824,24 @@ def get_top_clients():
     #print('Top clients data:', pyramid_data,"date",chosen_date)
 
     return jsonify(pyramid_data)
+@app.route('/data_par_heure1')
+def data_par_heure1():
+    date_query = request.args.get('date', None)
+    vehicles_collection = mongo.db.vehicules
 
+    match_stage = {"$match": {"class": {"$ne": "Worker"}}}
+    if date_query:
+        date = datetime.strptime(date_query, '%Y-%m-%d')
+        match_stage["$match"]["date d\'entrée"] = {"$gte": date, "$lt": date + timedelta(days=1)}
 
-@app.route('/registre', methods=['GET', 'POST'])
-def registre():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        password_hash = generate_password_hash(password)
+    pipeline = [
+        match_stage,
+        {"$group": {"_id": {"$hour": "$date d\'entrée"}, "count": {"$sum": 1}}}
+    ]
+    result = list(vehicles_collection.aggregate(pipeline))
+    vehicles_per_hour = {doc["_id"]: doc["count"] for doc in result}
 
-        new_user = User(username=username, password_hash=password_hash)
-        db.session.add(new_user)
-        db.session.commit()
-
-        # Redirigez vers la page de connexion après l'inscription réussie
-        return redirect(url_for('login'))
-
-    return render_template('registre.html')
-
-
-
+    return jsonify({'vehicles_per_hour': vehicles_per_hour})
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
@@ -1139,6 +1219,181 @@ def initial_data():
     except Exception as e:
         logging.error("Error fetching initial data: %s", e)
         return jsonify({'error': str(e)}), 500
+    
+
+
+
+# page statistics   
+@app.route('/api/total_vehicles', methods=['GET'])
+def get_total_vehicles():
+        selected_date = request.args.get('date')
+        filter_type = request.args.get('filter_type')
+        vehicules_collection = mongo.db.vehicules
+
+        if filter_type == 'day':
+            start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+            end_date = start_date + timedelta(days=1)
+        elif filter_type == 'week':
+            start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
+            end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d') + timedelta(days=1)
+        else:
+            return jsonify({'error': 'Invalid filter type'}), 400
+
+        total = vehicules_collection.count_documents({
+            'date d\'entrée': {'$gte': start_date, '$lt': end_date}
+        })
+        return jsonify({'total': total})
+
+
+
+@app.route('/api/debit_vl', methods=['GET'])
+def get_debit_vl():
+    try:
+        selected_date = request.args.get('date')
+        filter_type = request.args.get('filter_type')
+        vehicules_collection = mongo.db.vehicules
+
+        if filter_type == 'day':
+            start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+            end_date = start_date + timedelta(days=1)
+        elif filter_type == 'week':
+            start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
+            end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d') + timedelta(days=1)
+        else:
+            return jsonify({'error': 'Invalid filter type'}), 400
+
+        total_vl = vehicules_collection.count_documents({
+            'date d\'entrée': {'$gte': start_date, '$lt': end_date},
+            'class': {'$in': ['Big Truck', 'Construction Machine', 'Small Truck']}
+        })
+        return jsonify({'total_vl': total_vl})
+    except Exception as e:
+        return jsonify({'error': 'An error occurred', 'message': str(e)}), 500
+
+@app.route('/api/debit_vp', methods=['GET'])
+def get_debit_vp():
+    try:
+        selected_date = request.args.get('date')
+        filter_type = request.args.get('filter_type')
+        vehicules_collection = mongo.db.vehicules
+
+        if filter_type == 'day':
+            start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+            end_date = start_date + timedelta(days=1)
+        elif filter_type == 'week':
+            start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
+            end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d') + timedelta(days=1)
+        else:
+            return jsonify({'error': 'Invalid filter type'}), 400
+
+        total_vp = vehicules_collection.count_documents({
+            'date d\'entrée': {'$gte': start_date, '$lt': end_date},
+            'class': {'$in': ['Taxi', 'Car', 'Motorcycle']}
+        })
+        return jsonify({'total_vp': total_vp})
+    except Exception as e:
+        return jsonify({'error': 'An error occurred', 'message': str(e)}), 500
+    
+@app.route('/api/unique_zones', methods=['GET'])
+def get_unique_zones():
+    try:
+        vehicules_collection = mongo.db.vehicules
+        unique_zones = vehicules_collection.distinct('ZoneTotal')
+        return jsonify({'unique_zones': len(unique_zones)})
+    except Exception as e:
+        return jsonify({'error': 'An error occurred', 'message': str(e)}), 500
+    
+@app.route('/api/vehicles_by_class', methods=['GET'])
+def get_vehicles_by_class():
+    try:
+        selected_date = request.args.get('date')
+        filter_type = request.args.get('filter_type')
+        vehicules_collection = mongo.db.vehicules
+
+        if filter_type == 'day':
+            start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+            end_date = start_date + timedelta(days=1)
+        elif filter_type == 'week':
+            start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
+            end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d') + timedelta(days=1)
+        else:
+            return jsonify({'error': 'Invalid filter type'}), 400
+
+        pipeline = [
+            {
+                '$match': {
+                    'date d\'entrée': {'$gte': start_date, '$lt': end_date}
+                }
+            },
+            {
+                '$group': {
+                    '_id': '$class',
+                    'count': {'$sum': 1}
+                }
+            },
+            {
+                '$project': {
+                    '_id': 0,
+                    'class': '$_id',
+                    'count': 1
+                }
+            }
+        ]
+        result = list(vehicules_collection.aggregate(pipeline))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': 'An error occurred', 'message': str(e)}), 500
+@app.route('/api/analysis_by_zone', methods=['GET'])
+def get_analysis_by_zone():
+    try:
+        selected_date = request.args.get('date')
+        filter_type = request.args.get('filter_type')
+        vehicules_collection = mongo.db.vehicules
+
+        if filter_type == 'day':
+            start_date = datetime.strptime(selected_date, '%Y-%m-%d')
+            end_date = start_date + timedelta(days=1)
+        elif filter_type == 'week':
+            start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
+            end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d') + timedelta(days=1)
+        else:
+            return jsonify({'error': 'Invalid filter type'}), 400
+
+        pipeline = [
+            {
+                '$match': {
+                    'date d\'entrée': {'$gte': start_date, '$lt': end_date}
+                }
+            },
+            {
+                '$group': {
+                    '_id': '$ZoneTotal',
+                    'heavy_weight': {
+                        '$sum': {
+                            '$cond': [{'$in': ['$class', ['Big Truck', 'Construction Machine', 'Small Truck']]}, 1, 0]
+                        }
+                    },
+                    'light_weight': {
+                        '$sum': {
+                            '$cond': [{'$in': ['$class', ['Taxi', 'Car', 'Motorcycle']]}, 1, 0]
+                        }
+                    }
+                }
+            },
+            {
+                '$project': {
+                    '_id': 0,
+                    'zone': '$_id',
+                    'heavy_weight': 1,
+                    'light_weight': 1
+                }
+            }
+        ]
+        result = list(vehicules_collection.aggregate(pipeline))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': 'An error occurred', 'message': str(e)}), 500
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

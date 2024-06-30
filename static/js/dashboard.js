@@ -297,7 +297,7 @@ function updateDataForHourlyChart() {
     const chosenDate = document.getElementById('dateInput').value;
     console.log("Date choisie: ", chosenDate); // Afficher la date choisie
 
-    fetch(`/data_par_heure?date=${chosenDate}`)
+    fetch(`/data_par_heure1?date=${chosenDate}`)
     .then(response => {
         if (!response.ok) {
             throw new Error('Réponse réseau non OK');
@@ -446,7 +446,7 @@ function updateStatistics(selectedDate) {
 function updateTopClientsForDate() {
     const chosenDate = document.getElementById('dateInput').value;
     if (chosenDate) {
-        fetch(`/get-top-clients?date=${chosenDate}`)
+        fetch(`/get-top-clients1?date=${chosenDate}`)
         .then(response => response.json())
         .then(data => {
             console.log('****************', data);

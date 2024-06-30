@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TotalEnergies Insight Hub</title>
+    <title>Statistics Dashboard</title>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.5/css/buttons.dataTables.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -527,11 +527,11 @@
     <div class="charts-container">
         <div class="charts-row">
             <div class="chart-container">
-                <h2 class="chart-title">Répartition des Véhicules par Classe dans la Journée / Semaine</h2>
+                <h2 class="chart-title">Répartition des Véhicules par Classe dans la Journée</h2>
                 <canvas id="vehicleChart"></canvas>
             </div>
             <div class="chart-container">
-                <h2 class="chart-title">Nombre Total de Véhicules par Heure / Jour</h2>
+                <h2 class="chart-title">Nombre Total de Véhicules par Heure</h2>
                 <canvas id="vehiclesHourChart"></canvas>
             </div>
         </div>
@@ -695,210 +695,41 @@
             }
             return value;
         }
-        var myAvgWaitTimeChart = null;
-        var myVehicleChart = null;
-        var myPumpUsageChart = null;
-        var myVehicleHourChart = null ; 
-        var myTopClientsChart = null;
 /*#################### partie de creation des charts */
         // JavaScript pour les graphiques et la génération du PDF
         document.addEventListener('DOMContentLoaded', function () {
-    const backgroundColors = [
-        'rgba(255, 99, 132, 0.6)',
-        'rgba(54, 162, 235, 0.6)',
-        'rgba(255, 206, 86, 0.6)',
-        'rgba(75, 192, 192, 0.6)',
-        'rgba(153, 102, 255, 0.6)',
-        'rgba(255, 159, 64, 0.6)',
-        'rgba(199, 199, 199, 0.6)'
-    ];
-    const borderColors = [
-        'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
-        'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
-        'rgba(159, 159, 159, 1)'
-    ];
+            const backgroundColors = [
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+                'rgba(255, 159, 64, 0.6)',
+                'rgba(199, 199, 199, 0.6)'
+            ];
+            const borderColors = [
+                'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
+                'rgba(159, 159, 159, 1)'
+            ];
+            const dateInput = document.getElementById('unique_filter_date');
 
-    const dayRadioBtn = document.getElementById('unique_day');
-    const weekRadioBtn = document.getElementById('unique_week');
-    const dayInput = document.getElementById('unique_filter_date');
-    const startDateInput = document.getElementById('unique_start_date');
-    const endDateInput = document.getElementById('unique_end_date');
-
-    
-
-    const createChart = (ctx, type, data, options) => {
-        return new Chart(ctx, {
-            type: type,
-            data: data,
-            options: options
-        });
-    };
-
-    const updateDataForAvgWaitTimeChart = () => {
-        const filterType = dayRadioBtn.checked ? 'day' : 'week';
-        let url = '/avg_wait_time_by_class?filter_type=' + filterType;
-
-        if (filterType === 'day' && dayInput.value) {
-            url += '&start_date=' + dayInput.value + '&end_date=' + dayInput.value;
-        } else if (filterType === 'week' && startDateInput.value && endDateInput.value) {
-            url += '&start_date=' + startDateInput.value + '&end_date=' + endDateInput.value;
-        } else {
-            console.error('Date parameters are missing.');
-            return;
-        }
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                const ctx = document.getElementById('avgWaitTimeChart').getContext('2d');
-                if (myAvgWaitTimeChart) myAvgWaitTimeChart.destroy();
-                myAvgWaitTimeChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(data),
-                        datasets: [{
-                            label: 'Temps d\'attente moyen par classe (en secondes)',
-                            data: Object.values(data),
-                            backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                            borderColor: 'rgba(153, 102, 255, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: { 
-                            y: { beginAtZero: true } 
-                        }
-                    }
+            const createChart = (ctx, type, data, options) => {
+                return new Chart(ctx, {
+                    type: type,
+                    data: data,
+                    options: options
                 });
-            })
-            .catch(error => console.error('Error loading the average wait time data:', error));
-    };
+            };
 
-
-    // Déclarer la variable globalement
-    const updateDataForHourlyChart = () => {
-    const filterType = dayRadioBtn.checked ? 'day' : 'week';
-    let url = '/data_par_heure?filter_type=' + filterType;
-
-    if (filterType === 'day' && dayInput.value) {
-        url += '&start_date=' + dayInput.value + '&end_date=' + dayInput.value;
-    } else if (filterType === 'week' && startDateInput.value && endDateInput.value) {
-        url += '&start_date=' + startDateInput.value + '&end_date=' + endDateInput.value;
-    } else {
-        console.error('Date parameters are missing.');
-        return;
-    }
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Vehicles per hour/day data:', data);  // Debug log
-            const ctx = document.getElementById('vehiclesHourChart').getContext('2d');
-            if (window.myVehicleHourChart) window.myVehicleHourChart.destroy();
-
-            const labels = Object.keys(data);
-            const values = Object.values(data);
-            const chartType = filterType === 'day' ? 'line' : 'bar';
-            const chartLabel = filterType === 'day' ? 'Nombre total de véhicules par heure' : 'Nombre total de véhicules par jour';
-
-            window.myVehicleHourChart = new Chart(ctx, {
-                type: chartType,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: chartLabel,
-                        data: values,
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1,
-                        fill: filterType === 'day' ? false : true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            ticks: {
-                                maxRotation: 0,
-                                minRotation: 0
-                            }
-                        },
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 10,
-                            top: 10,
-                            bottom: 40
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                fontColor: '#333',
-                                usePointStyle: true
-                            }
-                        },
-                        title: {
-                            display: false
-                        }
-                    }
-                }
-            });
-        })
-        .catch(error => console.error('Error loading the vehicle data per hour/day:', error));
-};
-
-
-// Appeler la fonction pour initialiser le graphique
-updateDataForHourlyChart();
-
-
-    const updateDataForVehicleChart = () => {
-        const filterType = dayRadioBtn.checked ? 'day' : 'week';
-        let url = '/data?filter_type=' + filterType;
-
-        if (filterType === 'day' && dayInput.value) {
-            url += '&start_date=' + dayInput.value + '&end_date=' + dayInput.value;
-        } else if (filterType === 'week' && startDateInput.value && endDateInput.value) {
-            url += '&start_date=' + startDateInput.value + '&end_date=' + endDateInput.value;
-        } else {
-            console.error('Date parameters are missing.');
-            return;
-        }
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Vehicle data by class:', data);  // Debug log
-                const ctx = document.getElementById('vehicleChart').getContext('2d');
-                if (myVehicleChart) myVehicleChart.destroy();
-                myVehicleChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
+            const updateDataForVehicleChart = () => {
+                const chosenDate = dateInput.value;
+                fetch(`/data?date=${chosenDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('vehicleChart').getContext('2d');
+                    if (window.myVehicleChart) window.myVehicleChart.destroy();
+                    window.myVehicleChart = createChart(ctx, 'bar', {
                         labels: Object.keys(data),
                         datasets: [{
                             label: 'Nombre de véhicules par classe',
@@ -907,8 +738,7 @@ updateDataForHourlyChart();
                             borderColor: borderColors,
                             borderWidth: 1
                         }]
-                    },
-                    options: {
+                    }, {
                         responsive: true,
                         maintainAspectRatio: false,
                         scales: { 
@@ -923,39 +753,75 @@ updateDataForHourlyChart();
                             } 
                         },
                         title: { display: false }
-                    }
+                    });
                 });
-            })
-            .catch(error => console.error('Error loading the vehicle data by class:', error));
-    };
+            };
 
-    const updateDataForPumpUsageChart = () => {
-        const filterType = dayRadioBtn.checked ? 'day' : 'week';
-        let url = '/pump_data?filter_type=' + filterType;
+            const updateDataForHourlyChart = () => {
+                const chosenDate = dateInput.value;
+                fetch(`/data_par_heure?date=${chosenDate}`)
+                .then(response => response.json())
+                .then(allData => {
+                    const data = allData.vehicles_per_hour;
+                    const ctx = document.getElementById('vehiclesHourChart').getContext('2d');
+                    if (window.myChart) window.myChart.destroy();
+                    window.myChart = createChart(ctx, 'line', {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            label: 'Nombre total de véhicules par heure',
+                            data: Object.values(data),
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            fill: false,
+                        }]
+                    }, {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { 
+                            x: {
+                                ticks: {
+                                    maxRotation: 0,
+                                    minRotation: 0
+                                }
+                            },
+                            y: { 
+                                beginAtZero: true 
+                            }
+                        },
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 10,
+                                top: 10,
+                                bottom: 40
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    fontColor: '#333',
+                                    usePointStyle: true
+                                }
+                            },
+                            title: {
+                                display: false
+                            }
+                        }
+                    });
+                });
+            };
 
-        if (filterType === 'day' && dayInput.value) {
-            url += '&start_date=' + dayInput.value + '&end_date=' + dayInput.value;
-        } else if (filterType === 'week' && startDateInput.value && endDateInput.value) {
-            url += '&start_date=' + startDateInput.value + '&end_date=' + endDateInput.value;
-        } else {
-            console.error('Date parameters are missing.');
-            return;
-        }
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Pump usage data:', data);  // Debug log
-                const ctx = document.getElementById('pumpUsageChart').getContext('2d');
-                if (myPumpUsageChart) myPumpUsageChart.destroy();
-                myPumpUsageChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
+            const updateDataForPumpUsageChart = () => {
+                const chosenDate = dateInput.value;
+                fetch(`/pump_data?date=${chosenDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('pumpUsageChart').getContext('2d');
+                    if (window.myPumpUsageChart) window.myPumpUsageChart.destroy();
+                    window.myPumpUsageChart = createChart(ctx, 'pie', {
                         labels: Object.keys(data),
                         datasets: [{
                             label: 'Utilisation des Pompes',
@@ -964,99 +830,95 @@ updateDataForHourlyChart();
                             borderColor: borderColors,
                             borderWidth: 1
                         }]
-                    },
-                    options: {
+                    }, {
                         responsive: true,
                         maintainAspectRatio: false
-                    }
+                    });
                 });
-            })
-            .catch(error => console.error('Error loading the pump usage data:', error));
-    };
-    const updateTopClientsForDate = () => {
-        const filterType = dayRadioBtn.checked ? 'day' : 'week';
-        let url = '/get-top-clients?filter_type=' + filterType;
+            };
 
-        if (filterType === 'day' && dayInput.value) {
-            url += '&start_date=' + dayInput.value + '&end_date=' + dayInput.value;
-        } else if (filterType === 'week' && startDateInput.value && endDateInput.value) {
-            url += '&start_date=' + startDateInput.value + '&end_date=' + endDateInput.value;
-        } else {
-            console.error('Date parameters are missing.');
-            return;
-        }
+            const updateDataForAvgWaitTimeChart = () => {
+                const chosenDate = dateInput.value;
+                fetch(`/avg_wait_time_by_class?date=${chosenDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('avgWaitTimeChart').getContext('2d');
+                    if (window.myAvgWaitTimeChart) window.myAvgWaitTimeChart.destroy();
+                    window.myAvgWaitTimeChart = createChart(ctx, 'bar', {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            label: 'Temps d\'attente moyen (en secondes)',
+                            data: Object.values(data),
+                            backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    }, {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { 
+                            y: { beginAtZero: true } 
+                        }
+                    });
+                });
+            };
 
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+            const updateTopClientsForDate = () => {
+                const chosenDate = dateInput.value;
+                if (chosenDate) {
+                    fetch(`/get-top-clients?date=${chosenDate}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const container = document.getElementById('pyramid-chart-container');
+                        container.innerHTML = '';
+                        data.sort((a, b) => b.value - a.value);
+                        data.forEach((item, index) => {
+                            const barContainer = document.createElement('div');
+                            barContainer.style.display = 'flex';
+                            barContainer.style.alignItems = 'center';
+                            barContainer.style.marginBottom = '10px';
+
+                            const label = document.createElement('span');
+                            label.textContent = `${item.label}: `;
+                            label.style.minWidth = '100px';
+
+                            const bar = document.createElement('div');
+                            bar.style.height = '20px';
+                            bar.style.width = `${Math.max(item.value, 1) * 10}px`;
+                            bar.style.backgroundColor = index % 2 === 0 ? '#4e79a7' : '#f28e2b';
+                            bar.textContent = item.value;
+                            bar.style.color = 'white';
+                            bar.style.display = 'flex';
+                            bar.style.alignItems = 'center';
+                            bar.style.justifyContent = 'center';
+                            bar.style.textAlign = 'right';
+                            bar.style.paddingRight = '5px';
+
+                            barContainer.appendChild(label);
+                            barContainer.appendChild(bar);
+                            container.appendChild(barContainer);
+                        });
+                    });
                 }
-                return response.json();
-            })
-            .then(data => {
-                const container = document.getElementById('pyramid-chart-container');
-                container.innerHTML = '';
-                data.sort((a, b) => b.value - a.value);
-                data.forEach((item, index) => {
-                    const barContainer = document.createElement('div');
-                    barContainer.style.display = 'flex';
-                    barContainer.style.alignItems = 'center';
-                    barContainer.style.marginBottom = '10px';
+            };
 
-                    const label = document.createElement('span');
-                    label.textContent = `${item.label}: `;
-                    label.style.minWidth = '100px';
+            const loadData = (date) => {
+                updateDataForVehicleChart(date);
+                updateDataForHourlyChart(date);
+                updateDataForPumpUsageChart(date);
+                updateDataForAvgWaitTimeChart(date);
+                updateTopClientsForDate(date);
+            }
 
-                    const bar = document.createElement('div');
-                    bar.style.height = '20px';
-                    bar.style.width = `${Math.max(item.value, 1) * 10}px`;
-                    bar.style.backgroundColor = index % 2 === 0 ? '#4e79a7' : '#f28e2b';
-                    bar.textContent = item.value;
-                    bar.style.color = 'white';
-                    bar.style.display = 'flex';
-                    bar.style.alignItems = 'center';
-                    bar.style.justifyContent = 'center';
-                    bar.style.textAlign = 'right';
-                    bar.style.paddingRight = '5px';
+            // Set default date to 2024-04-05
+            const defaultDate = '2024-04-05';
+            dateInput.value = defaultDate;
+            loadData(defaultDate);
 
-                    barContainer.appendChild(label);
-                    barContainer.appendChild(bar);
-                    container.appendChild(barContainer);
-                });
-            })
-            .catch(error => console.error('Error loading top clients data:', error));
-    };
-
-    const loadData = () => {
-        updateDataForHourlyChart();
-        updateDataForAvgWaitTimeChart();
-        updateDataForVehicleChart();
-        updateDataForPumpUsageChart();
-        updateTopClientsForDate();
-    };
-
-    // Event listeners for updating the chart
-    dayRadioBtn.addEventListener('change', function() {
-        document.getElementById('unique-day-filter').style.display = 'block';
-        document.getElementById('unique-week-filter').style.display = 'none';
-        loadData();
-    });
-
-    weekRadioBtn.addEventListener('change', function() {
-        document.getElementById('unique-day-filter').style.display = 'none';
-        document.getElementById('unique-week-filter').style.display = 'block';
-        loadData();
-    });
-
-    dayInput.addEventListener('change', loadData);
-    startDateInput.addEventListener('change', loadData);
-    endDateInput.addEventListener('change', loadData);
-
-    // Set default date and load data
-    const defaultDate = '2024-04-05';
-    dayInput.value = defaultDate;
-    loadData();
-
+            dateInput.addEventListener('change', () => {
+                const chosenDate = dateInput.value;
+                loadData(chosenDate);
+            });
 
 
 /*    partie de pdf*/
@@ -1102,9 +964,9 @@ updateDataForHourlyChart();
     const titlePage = pdfDoc.addPage([841.89, 595.28]); // A4 landscape dimensions in points
     
     titlePage.drawText(reportType + ' for ' + chosenDate, {
-        x: 150,
+        x: 200,
         y: titlePage.getHeight() / 2,
-        size: 30,
+        size: 35,
         font: await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica),
         color: PDFLib.rgb(0, 0, 0)
     });
@@ -1145,80 +1007,20 @@ updateDataForHourlyChart();
             const imageHeight = 400;
 
             pdf.setFontSize(16);
-            // Determine the filter type and the chosen date(s)
-    const isDaySelected = document.getElementById('unique_day').checked;
-    const chosenDate = isDaySelected ? document.getElementById('unique_filter_date').value : document.getElementById('unique_start_date').value + ' to ' + document.getElementById('unique_end_date').value;
-    const reportType = isDaySelected ? 'Daily Report' : 'Weekly Report';
-            if (window.myVehicleChart) {
-                pdf.text('Répartition des Véhicules par Classe ', margin, 40);
-                pdf.setFontSize(12);
-        pdf.text(
-            `Cette section présente la répartition des véhicules par classe ${isDaySelected ? 'au cours de la journée' : 'au cours de la semaine'}. En analysant ces données, nous pouvons mieux comprendre les types de véhicules qui fréquentent notre station et à quels moments ils sont les plus présents. Cela nous permet d'optimiser notre gestion des ressources et d'améliorer le service client.`,
-            margin, 60, { maxWidth: pageWidth - 2 * margin }
-        );
-                pdf.addImage(window.myVehicleChart.toBase64Image(), 'PNG', margin, 90, pageWidth - 2 * margin, imageHeight);
-            } else {
-                console.error('myVehicleChart is not initialized.');
-            }
-
+            pdf.text('Répartition des Véhicules par Classe dans la Journée', margin, 40);
+            pdf.addImage(window.myVehicleChart.toBase64Image(), 'PNG', margin, 60, pageWidth - 2 * margin, imageHeight);
 
             pdf.addPage();
-            if (window.myVehicleHourChart) {
             pdf.text('Nombre Total de Véhicules par Heure', margin, 40);
-            pdf.setFontSize(12);
-        pdf.text(
-            `Le graphique suivant illustre le nombre total de véhicules ${isDaySelected ? 'par heure au cours de la journée' : 'par jour au cours de la semaine'}. Cette analyse ${isDaySelected ? 'horaire' : 'quotidienne'} est essentielle pour identifier les périodes de forte affluence et les moments plus calmes. Elle nous aide à planifier adéquatement le personnel et les opérations pour répondre efficacement aux besoins des clients.`,
-            margin, 60, { maxWidth: pageWidth - 2 * margin }
-        );
-            pdf.addImage(window.myVehicleHourChart.toBase64Image(), 'PNG', margin, 90, pageWidth - 2 * margin, imageHeight);
-            } else {
-                console.error('myVehicleHourChart is not initialized.');
-            }
-
-
+            pdf.addImage(window.myChart.toBase64Image(), 'PNG', margin, 60, pageWidth - 2 * margin, imageHeight);
+            
             pdf.addPage();
-            if (window.myPumpUsageChart) {
             pdf.text('Utilisation des Pompes', margin, 40);
-            pdf.text(
-            `Cette section met en évidence l'utilisation des différentes pompes ${isDaySelected ? 'au cours de la journée' : 'au cours de la semaine'}. En observant les tendances d'utilisation des pompes, nous pouvons déterminer quelles sont les plus sollicitées et envisager des ajustements pour équilibrer la charge et améliorer l'efficacité opérationnelle.`,
-            margin, 60, { maxWidth: pageWidth - 2 * margin }
-        );
-
-            pdf.addImage(window.myPumpUsageChart.toBase64Image(), 'PNG', margin, 90, pageWidth - 2 * margin, imageHeight);
-            } else {
-                console.error('myPumpUsageChart is not initialized.');
-            }
-
-
-
+            pdf.addImage(window.myPumpUsageChart.toBase64Image(), 'PNG', margin, 60, pageWidth - 2 * margin, imageHeight);
+            
             pdf.addPage();
-            if (window.myAvgWaitTimeChart) {
             pdf.text('Temps d\'Attente Moyen par Classe de Véhicule', margin, 40);
-            pdf.setFontSize(12);
-        pdf.text(
-            `Le graphique suivant présente le temps d'attente moyen par classe de véhicule ${isDaySelected ? 'au cours de la journée' : 'au cours de la semaine'}. Comprendre les temps d'attente est crucial pour améliorer l'expérience client. Cette analyse nous permet d'identifier les points de congestion et de prendre des mesures pour réduire les temps d'attente.`,
-            margin, 60, { maxWidth: pageWidth - 2 * margin }
-        );
-            pdf.addImage(window.myAvgWaitTimeChart.toBase64Image(), 'PNG', margin, 90, pageWidth - 2 * margin, imageHeight);
-            } else {
-                console.error('myAvgWaitTimeChart is not initialized.');
-            }
-            pdf.addPage();
-            const topClientsContainer = document.getElementById('pyramid-chart-container');
-            if (topClientsContainer) {
-                pdf.setFontSize(24);
-                pdf.text('Top Clients', pageWidth / 2 - 50, 40);
-                pdf.setFontSize(12);
-        pdf.text(
-            `Cette section met en lumière nos clients les plus fidèles ${isDaySelected ? 'au cours de la journée' : 'au cours de la semaine'}. Connaître les clients qui fréquentent régulièrement notre station nous aide à personnaliser nos services et à créer des programmes de fidélité efficaces. Cela renforce notre relation avec ces clients précieux et encourage leur fidélité continue.`,
-            margin, 60, { maxWidth: pageWidth - 2 * margin }
-        );
-                const canvas = await html2canvas(topClientsContainer);
-                const imgData = canvas.toDataURL('image/png');
-                pdf.addImage(imgData, 'PNG', margin, 90, pageWidth - 2 * margin, imageHeight);
-            } else {
-                console.error('pyramid-chart-container is not found or not initialized.');
-            }
+            pdf.addImage(window.myAvgWaitTimeChart.toBase64Image(), 'PNG', margin, 60, pageWidth - 2 * margin, imageHeight);
         }
 
         // Fonction pour ajouter des tableaux au PDF
