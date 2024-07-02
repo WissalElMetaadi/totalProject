@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter une Promotion</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #d0d8b2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header, footer {
+            background-color: #d0d8b2;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .promotion-history {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            max-height: calc(100vh - 140px);
+        }
+
+        .promotion-form-container {
+            flex: 2;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        .promotion-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .promotion-form label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .promotion-form input, .promotion-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .promotion-form button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .promotion-form button:hover {
+            background-color: #218838;
+        }
+
+        .promotion-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .promotion-list li {
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        .promotion-list li:hover {
+            transform: translateX(10px);
+            background-color: #a4ccf5;
+        }
+
+        .feedback {
+            display: none;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .feedback.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Promotion Management Dashboard</h1>
+    </header>
+    <div class="container">
+        <div class="promotion-history">
+            <h2>Historique des Promotions</h2>
+            <ul class="promotion-list" id="promotion-list">
+                {% for promo in promotions %}
+                    <li><strong>{{ promo.title }}</strong>: {{ promo.text }} ({{ promo.timestamp.strftime('%Y-%m-%d %H:%M:%S') }})</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="promotion-form-container">
+            <h2>Ajouter une Promotion</h2>
+            <form class="promotion-form" id="promotion-form">
+                <label for="promo-title">Titre de la promotion</label>
+                <input type="text" name="promo_title" id="promo-title" placeholder="Titre de la promotion">
+                <label for="promo-text">Texte de la promotion</label>
+                <textarea name="promo_text" id="promo-text" placeholder="Écrivez une nouvelle promotion..."></textarea>
+                <button type="submit">Ajouter</button>
+            </form>
+            <div id="feedback" class="feedback"></div>
+            <a href="{{ url_for('dashboard') }}" class="back-btn">Retour au Dashboard</a>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2023 Votre Entreprise. Tous droits réservés.</p>
+    </footer>
+    <script>
+        document.getElementById('promotion-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const promoTitle = document.getElementById('promo-title').value;
+            const promoText = document.getElementById('promo-text').value;
+            const feedback = document.getElementById('feedback');
+
+            if (!promoTitle.trim() || !promoText.trim()) {
+                feedback.textContent = 'Le titre et le texte de la promotion ne peuvent pas être vides.';
+                feedback.classList.add('error');
+                feedback.classList.remove('success');
+                feedback.style.display = 'block';
+                return;
+            }
+
+            fetch("{{ url_for('add_promotion') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    promo_title: promoTitle,
+                    promo_text: promoText
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    feedback.textContent = 'Promotion ajoutée avec succès !';
+                    feedback.classList.add('success');
+                    feedback.classList.remove('error');
+                    feedback.style.display = 'block';
+                    document.getElementById('promo-title').value = '';
+                    document.getElementById('promo-text').value = '';
+
+                    // Ajouter la nouvelle promotion à l'historique
+                    const promoList = document.getElementById('promotion-list');
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('list-group-item');
+                    const now = new Date();
+                    listItem.innerHTML = `<strong>${promoTitle}</strong>: ${promoText} (${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()})`;
+                    promoList.insertBefore(listItem, promoList.firstChild);
+                } else {
+                    feedback.textContent = 'Erreur lors de l\'ajout de la promotion. Veuillez réessayer.';
+                    feedback.classList.add('error');
+                    feedback.classList.remove('success');
+                    feedback.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                feedback.textContent = 'Erreur lors de l\'ajout de la promotion. Veuillez réessayer.';
+                feedback.classList.add('error');
+                feedback.classList.remove('success');
+                feedback.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

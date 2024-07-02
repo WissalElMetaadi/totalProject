@@ -59,10 +59,24 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 class User(UserMixin):
-    def __init__(self, user_id, name, worker_type):
+    def __init__(self, user_id, name, worker_type,station_id):
         self.id = user_id
         self.name = name
         self.worker_type = worker_type
+        self.station_id = station_id
+
+
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        user_data = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+        if user_data:
+            return User(user_id=str(user_data['_id']), name=user_data['name'], worker_type=user_data['worker_type'], station_id=user_data['station_id'])
+    except Exception as e:
+        logging.error(f"Error loading user: {e}")
+    return None
 
 def load_csv():
     data = {}
@@ -98,15 +112,7 @@ def update_csv(new_data):
     save_csv(data)
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    try:
-        user_data = mongo.db.users.find_one({"_id": ObjectId(user_id)})
-        if user_data:
-            return User(user_id=str(user_data['_id']), name=user_data['name'], worker_type=user_data['worker_type'])
-    except Exception as e:
-        logging.error(f"Error loading user: {e}")
-    return None
+
 
 @app.route('/start_processing', methods=['POST'])
 def start_processing():
@@ -391,9 +397,6 @@ def update_user(id):
         return jsonify({"message": "User updated successfully!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-
 @app.route('/get_governorates', methods=['GET'])
 def get_governorates():
     try:
@@ -442,6 +445,92 @@ def test():
     sentiment_counts = {doc["_id"]: doc["count"] for doc in result}
     return render_template('test.html', sentiment_counts=sentiment_counts)
 
+@app.route('/admin/promotions', methods=['GET', 'POST'])
+@login_required
+def manage_promotions():
+    if request.method == 'POST':
+        data = request.get_json()
+        if data and 'promo_text' in data:
+            promo_text = data['promo_text']
+            promo_entry = {
+                'text': promo_text,
+                'timestamp': datetime.now()
+            }
+            mongo.db.promotions.insert_one(promo_entry)
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
+    promotions = list(mongo.db.promotions.find())
+    return render_template('admin_dashboard.html', promotions=promotions)
+@app.route('/latest_promotion', methods=['GET'])
+def latest_promotion():
+    promotion = mongo.db.promotions.find().sort('timestamp', -1).limit(1)
+    promo_list = list(promotion)  # Convertir le curseur en liste
+    if len(promo_list) > 0:
+        promo = promo_list[0]
+        return jsonify({
+            'title': promo['title'],
+            'text': promo['text'],
+            'timestamp': promo['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+        })
+    else:
+        return jsonify({
+            'title': 'Pas de promotions disponibles',
+            'text': '',
+            'timestamp': ''
+        })
+
+
+@app.route('/admin/add_promotion', methods=['GET', 'POST'])
+@login_required
+def add_promotion():
+    if request.method == 'POST':
+        promo_title = request.form['promo_title']
+        promo_text = request.form['promo_text']
+        if not promo_title or not promo_text:
+            return jsonify({'success': False, 'message': 'Le titre et le texte de la promotion ne peuvent pas être vides.'}), 400
+
+        promo_entry = {
+            'title': promo_title,
+            'text': promo_text,
+            'timestamp': datetime.now()
+        }
+        mongo.db.promotions.insert_one(promo_entry)
+        return jsonify({'success': True})
+    
+    promotions = list(mongo.db.promotions.find().sort('timestamp', -1))
+    return render_template('add_promotion.html', promotions=promotions)
+
+@app.route('/promotions', methods=['GET'])
+def get_promotions():
+    promotions = list(mongo.db.promotions.find().sort('timestamp', -1))
+    return jsonify([{
+        'title': promo['title'],
+        'text': promo['text'],
+        'timestamp': promo['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+    } for promo in promotions])
+
+@app.route('/reset_modal_shown')
+def reset_modal_shown():
+    session.pop('modal_shown', None)  # Supprime la variable de session
+    return 'Session reset successful'
+
+
+@app.route('/submit_feedback', methods=['POST'])
+@login_required
+def submit_feedback():
+    data = request.get_json()
+    feedback_text = data['feedback']
+    user_id = current_user.id
+    feedback_entry = {
+        'user_id': ObjectId(user_id),
+        'text': feedback_text,
+        'timestamp': datetime.now()
+    }
+    mongo.db.sentiment_data.insert_one(feedback_entry)
+    session['success'] = True  # Ajoutez ceci pour définir 'success' dans la session
+    return jsonify({'success': True})
 
 
 @app.route('/interface_user', methods=['GET'])
@@ -449,7 +538,15 @@ def test():
 def interface_user():
     if current_user.worker_type != 'Simple User':
         return redirect(url_for('dashboard'))
-    return render_template('interface_user.html')
+
+    user_data = mongo.db.users.find_one({"_id": ObjectId(current_user.id)})
+
+    if user_data and 'station_id' in user_data:
+        station = mongo.db.stations.find_one({"_id": ObjectId(user_data['station_id'])})
+        user_data['station_name'] = station['name'] if station else 'Unknown'
+
+    return render_template('interface_user.html', user=user_data)
+
 
 
 @app.route('/governorates')
@@ -537,6 +634,8 @@ def data_table():
 def maps():
     return render_template('maps.html')
 
+
+
 @app.route('/admin/users')
 def list_users():
     # Vous devriez ajouter une vérification d'authentification ici
@@ -552,12 +651,14 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user_data = mongo.db.users.find_one({"name": username})
-        
+
         if user_data and check_password_hash(user_data['password_hash'], password):
-            user = User(user_id=str(user_data['_id']), name=user_data['name'], worker_type=user_data['worker_type'])
+            user = User(user_id=str(user_data['_id']), name=user_data['name'], worker_type=user_data['worker_type'], station_id=user_data['station_id'])
             login_user(user)
             session['username'] = username
+            session['user_id'] = str(user_data['_id'])  # Add the user_id to the session
             session['user_role'] = user.worker_type
+
             # Redirection basée sur le rôle de l'utilisateur
             if user.worker_type == 'Simple User':
                 return redirect(url_for('interface_user'))
@@ -584,6 +685,8 @@ def statics():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    gouvernorates = list(mongo.db.governorates.find())
+    stations = list(mongo.db.stations.find())
     if current_user.worker_type == 'Simple User':
         return redirect(url_for('interface_user'))
 
@@ -591,7 +694,11 @@ def dashboard():
         return redirect(url_for('login'))
 
     vehicles_collection = mongo.db.vehicules
-    data = list(vehicles_collection.find())
+    if current_user.worker_type == 'global_admin':
+        data = list(vehicles_collection.find())  # No station_id filter for global_admin
+    else:
+        data = list(vehicles_collection.find({"station_id": current_user.station_id}))
+
     vehicles_collection1 = mongo.db.sentiment_data
     pipeline = [
         {"$group": {"_id": "$stars", "count": {"$sum": 1}}}
@@ -599,8 +706,7 @@ def dashboard():
     result = list(vehicles_collection1.aggregate(pipeline))
     sentiment_counts = {doc["_id"]: doc["count"] for doc in result}
 
-    return render_template('dashboard.html', data=data, sentiment_counts=sentiment_counts)
-
+    return render_template('dashboard.html', data=data, sentiment_counts=sentiment_counts,governorates=gouvernorates, stations=stations)
 
 
 
@@ -782,19 +888,51 @@ def get_top_clients():
 
 
 
+
 @app.route('/registre', methods=['GET', 'POST'])
 def registre():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        password_hash = generate_password_hash(password)
+        user_data = request.form.to_dict()
+        station_name = user_data.get('station_name')
 
-        new_user = User(username=username, password_hash=password_hash)
-        db.session.add(new_user)
-        db.session.commit()
+        # Log the received station_name
+        app.logger.info(f"Received station_name: {station_name}")
 
-        # Redirigez vers la page de connexion après l'inscription réussie
-        return redirect(url_for('login'))
+        # Trouver l'ObjectId de la station par son nom
+        station = mongo.db.stations.find_one({'name': station_name})
+        if not station:
+            app.logger.error(f"Station not found for name: {station_name}")
+            flash('Station not found. Please enter a valid station name.', 'error')
+            return redirect(url_for('registre'))
+
+        # Hacher le mot de passe et créer le document utilisateur
+        password_hash = generate_password_hash(user_data['password'])
+        
+        # Ajouter la colonne created_at avec le fuseau horaire Africa/Tunis
+        tunisia_tz = pytz.timezone('Africa/Tunis')
+        created_at = datetime.now(tunisia_tz)
+        
+        new_user = {
+            'name': user_data['name'],
+            'email': user_data['email'],
+            'gender': user_data['gender'],
+            'worker_type': 'Simple User',  # Fixer le rôle comme 'Simple User'
+            'birthdate': user_data['birthdate'],
+            'station_id': station['_id'],  # Utiliser l'ObjectId de la station
+            'cin': user_data['cin'],
+            'password_hash': password_hash,
+            'profile_picture': user_data.get('profile_picture', 'default.jpg'),
+            'created_at': created_at  # Ajouter le champ created_at
+        }
+        try:
+            mongo.db.users.insert_one(new_user)
+            app.logger.info("User added successfully")
+            flash('User registered successfully!', 'success')
+            return redirect(url_for('login'))  # Redirect to the login page after successful registration
+        except Exception as e:
+            app.logger.error(f"Exception occurred: {e}")
+            flash('An error occurred. Please try again.', 'error')
+            return redirect(url_for('registre'))
 
     return render_template('registre.html')
 

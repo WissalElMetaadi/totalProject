@@ -135,6 +135,41 @@
         .capture-unique .fraction-unique {
             font-size: 1em;
         }
+
+        
+
+        .add-promotion-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            position: absolute; /* This positions the button relative to the card */
+            top: 10px; /* Adjust this value to position the button vertically */
+            right: 20px; /* Adjust this value to position the button horizontally */
+        }
+
+        
+
+.add-promotion-btn:hover {
+    background-color: #218838;
+}
+
+.add-promotion-btn:active {
+    background-color: #1e7e34;
+}
+
+.add-promotion-btn:focus {
+    outline: none;
+}
+
         </style>
 </head>
 <body>
@@ -178,20 +213,23 @@
                         <div class="dropdown-group">
                             <label for="governorate">GOUVERNORAT</label>
                                 <select id="governorate" name="governorate" onchange="updateTitle()">
-                                    <option value="Grand Tunis">GRAND TUNIS</option>
-                                    <option value="Ariana">ARIANA</option>
-                                    <option value="Bizerte">BIZERTE</option>
+                                    {% for governorate in governorates %}
+                                <option value="{{ governorate.name }}">{{ governorate.name }}</option>
+                                 {% endfor %}
                                     <!-- Ajoutez d'autres options ici -->
                                 </select>
                             </div>
                             <div class="dropdown-group">
                                 <label for="station-id">ID STATION</label>
                                 <select id="station-id" name="station-id" onchange="updateTitle()">
-                                    <option value="Total N9-03">TOTAL N9-03</option>
-                                    <option value="Total N8-01">TOTAL N8-01</option>
-                                    <option value="Total S5-04">TOTAL S5-04</option>
-                                    <!-- Ajoutez d'autres options ici -->
+                                    {% for station in stations %}
+                            <option value="{{ station.name }}">{{ station.name }}</option>
+                            {% endfor %}
                                 </select>
+                                <div class="dropdown-group">
+                                    <a href="{{ url_for('add_promotion') }}" class="add-promotion-btn">Ajouter une promotion</a>
+                                    <!-- Autres contenus du dashboard -->
+                                </div>
                         </div>
                     </div>
                     
@@ -418,6 +456,8 @@
                                 <th>date d'entrée</th>
                                 <th>date de sortie</th>
                                 <th>wait_time</th>
+                                <th>station_id</th>
+
                                 <th>Image du véhicule</th>
                                 <th>Image de la plaque</th>
                                 <th>TotalZone</th>
@@ -434,6 +474,8 @@
                                 <td>{{ row['date d\'entrée'] }}</td>
                                 <td>{{ row['date de sortie'] }}</td>
                                 <td>{{ row['wait_time'] }}</td>
+                                <td>{{ row['station_id'] }}</td>
+
                                 <td>
                                     {% if row['Car Image'] %}
                                         <a href="#" onclick="openImageWindow('{{ url_for('static', filename=row['Car Image']) }}');">Voir Image du véhicule</a>
