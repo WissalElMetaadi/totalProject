@@ -1,3 +1,90 @@
+function updateTitle() {
+    var governorate = document.getElementById('governorate').value;
+    var stationId = document.getElementById('station-id').value;
+    var titleElement = document.getElementById('station-title');
+    titleElement.textContent = `${governorate} / ${stationId}`;
+}
+
+function updateTitleAndFilterData() {
+    updateTitle();
+
+    var governorate = document.getElementById('governorate').value;
+    var station = document.getElementById('station-id').value;
+
+    fetch('/filter_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ governorate: governorate, station: station })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Received data: ", data);  // Log the data to check if it is being received correctly
+
+        // Clear existing table data
+        $('#example').DataTable().clear().destroy();
+
+        // Map the received data to the format expected by DataTables
+        const tableData = data.map(row => ({
+            track_id: row.track_id,
+            class: row.class,
+            license_plate_text: row.license_plate_text,
+            score: row.score,
+            pompes_info: row.pompes_info,
+            date_entrée: row["date d'entrée"],
+            date_sortie: row["date de sortie"],
+            wait_time: row.wait_time,
+            station_name: row.station_name || 'Unknown',
+            car_image: row['Car Image'] ? `<a href="#" onclick="openImageWindow('${row['Car Image']}');">Voir Image du véhicule</a>` : 'Pas d\'image',
+            license_plate_image: row['License Plate Image'] ? `<a href="#" onclick="openImageWindow('${row['License Plate Image']}');">Voir Image de la plaque</a>` : 'Pas d\'image',
+            zone_total: row.ZoneTotal
+        }));
+
+        $('#example').DataTable({
+            data: tableData,
+            columns: [
+                { data: 'track_id', defaultContent: '' },
+                { data: 'class', defaultContent: '' },
+                { data: 'license_plate_text', defaultContent: '' },
+                { data: 'score', defaultContent: '' },
+                { data: 'pompes_info', defaultContent: '' },
+                { data: 'date d\'entrée', defaultContent: '' },
+                { data: 'date de sortie', defaultContent: '' },
+                { data: 'wait_time', defaultContent: '' },
+                { data: 'station_name', defaultContent: 'Unknown' },
+                { data: 'car_image', defaultContent: 'No image' },
+                { data: 'license_plate_image', defaultContent: 'No image' },
+                { data: 'zone_total', defaultContent: '' }
+            ],
+            "pageLength": 10
+        });
+        
+    })
+    .catch(error => console.error("Error fetching data: ", error));
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    updateTitle();
+    $('#example').DataTable({
+        "pageLength": 10
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 $(document).ready(function() {
     let lastCheckTime = Date.now();
 
@@ -35,6 +122,8 @@ $(document).ready(function() {
                 <p><strong>Type de Travailleur:</strong> ${user.worker_type}</p>
                 <p><strong>Date de Naissance:</strong> ${user.birthdate}</p>
                 <p><strong>Station:</strong> ${user.station_name}</p>
+                <p><strong>gouvernorat:</strong> ${user.governorate_name}</p>
+
                 <p><strong>CIN:</strong> ${user.cin}</p>
                 <hr>
             `;

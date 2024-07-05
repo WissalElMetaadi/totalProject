@@ -188,20 +188,19 @@
                         <div class="dropdown-group">
                             <label for="governorate">GOUVERNORAT</label>
                             <select id="governorate" name="governorate" onchange="updateTitle()">
-                                <option value="Grand Tunis">GRAND TUNIS</option>
-                                <option value="Ariana">ARIANA</option>
-                                <option value="Bizerte">BIZERTE</option>
-                                <!-- Ajoutez d'autres options ici -->
-                            </select>
-                        </div>
-                        <div class="dropdown-group">
-                            <label for="station-id">ID STATION</label>
-                            <select id="station-id" name="station-id" onchange="updateTitle()">
-                                <option value="Total N9-03">TOTAL N9-03</option>
-                                <option value="Total N8-01">TOTAL N8-01</option>
-                                <option value="Total S5-04">TOTAL S5-04</option>
-                                <!-- Ajoutez d'autres options ici -->
-                            </select>
+                                    {% for governorate in governorates %}
+                                <option value="{{ governorate.name }}">{{ governorate.name }}</option>
+                                 {% endfor %}
+                                    <!-- Ajoutez d'autres options ici -->
+                                </select>
+                            </div>
+                            <div class="dropdown-group">
+                                <label for="station-id">ID STATION</label>
+                                <select id="station-id" name="station-id" onchange="updateTitle()">
+                                    {% for station in stations %}
+                            <option value="{{ station.name }}">{{ station.name }}</option>
+                            {% endfor %}
+                                </select>
                         </div>
                     </div>
                 </div>
@@ -263,123 +262,166 @@
         });
 
         document.addEventListener('DOMContentLoaded', (event) => {
-            const dropZone = document.getElementById('file-drop-zone');
-            const fileInput = document.getElementById('file-input');
-            let updateInterval;
-            let videoPath = null;
+    const dropZone = document.getElementById('file-drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const governorateInput = document.getElementById('governorate');
+    const stationIdInput = document.getElementById('station-id');
+    let updateInterval;
+    let videoPath = null;
 
-            dropZone.addEventListener('click', () => {
-                fileInput.click();
-            });
+    dropZone.addEventListener('click', () => {
+        fileInput.click();
+    });
 
-            fileInput.addEventListener('change', (event) => {
-                handleFiles(event.target.files);
-            });
+    fileInput.addEventListener('change', (event) => {
+        handleFiles(event.target.files);
+    });
 
-            dropZone.addEventListener('dragover', (event) => {
-                event.preventDefault();
-                dropZone.classList.add('drop-zone--over');
-            });
+    dropZone.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        dropZone.classList.add('drop-zone--over');
+    });
 
-            dropZone.addEventListener('dragleave', (event) => {
-                dropZone.classList.remove('drop-zone--over');
-            });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drop-zone--over');
+    });
 
-            dropZone.addEventListener('drop', (event) => {
-                event.preventDefault();
-                dropZone.classList.remove('drop-zone--over');
-                const files = event.dataTransfer.files;
-                handleFiles(files);
-            });
+    dropZone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        dropZone.classList.remove('drop-zone--over');
+        handleFiles(event.dataTransfer.files);
+    });
 
-            function handleFiles(files) {
-                const url = '/upload'; // URL de l'endpoint Flask pour l'upload
-                for (const file of files) {
-                    const formData = new FormData();
-                    formData.append('file', file);
+    function handleFiles(files) {
+        const url = '/upload'; // URL de l'endpoint Flask pour l'upload
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
 
-                    // Envoie de la requête POST avec le fichier au serveur Flask
-                    fetch(url, {
-                        method: 'POST',
-                        body: formData,
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Upload successful', data);
-                        if (data.message) {
-                            videoPath = data.path;
-                            document.querySelector('.button[onclick="startVideo()"]').disabled = false;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error uploading file:', error);
-                    });
+            // Envoie de la requête POST avec le fichier au serveur Flask
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Upload successful', data);
+                if (data.message) {
+                    videoPath = data.path;
+                    document.querySelector('.button[onclick="startVideo()"]').disabled = false;
                 }
+            })
+            .catch(error => {
+                console.error('Error uploading file:', error);
+            });
+        }
+    }
+
+    window.startVideo = function() {
+        if (videoPath) {
+            fetch('/start_processing', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    const img = document.getElementById('videoFeed');
+                    img.src = "/video_feed"; // Affichage vidéo
+
+                    startUpdatingTable();
+                })
+                .catch(error => console.error('Error starting video:', error));
+        } else {
+            alert("Please upload a video file first.");
+        }
+    }
+
+    window.stopVideo = function() {
+        fetch('/stop_processing', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+                const img = document.getElementById('videoFeed');
+                img.src = "";
+                clearInterval(updateInterval);
+            })
+            .catch(error => console.error('Error stopping video:', error));
+    }
+
+    function startUpdatingTable() {
+        updateInterval = setInterval(() => {
+            fetch('/get_frame_data')
+            .then(response => response.json())
+            .then(data => {
+                updateTable(data);
+            })
+            .catch(error => {
+                console.error('Error getting frame data:', error);
+            });
+        }, 1000); // Met à jour toutes les secondes
+    }
+
+    function updateTable(details) {
+        const tableBody = document.getElementById('vehicleDetails');
+        tableBody.innerHTML = '';
+
+        if (!details) return; // Si aucune donnée n'est disponible, ne rien faire
+
+        for (const key in details) {
+            const detail = details[key];
+            const row = tableBody.insertRow();
+            const keys = ['track_id', 'class', 'license_plate_text', 'score LP', "date d'entrée", 'date de sortie', 'wait_time', 'pompes_info'];
+            for (const k of keys) {
+                const cell = row.insertCell();
+                cell.textContent = detail[k];
             }
+        }
+    }
 
-            window.startVideo = function() {
-                if (videoPath) {
-                    fetch('/start_processing', { method: 'POST' })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log(data.message);
-                            const img = document.getElementById('videoFeed');
-                            img.src = "/video_feed"; // Affichage vidéo
+    window.downloadCSV = function() {
+        const governorate = governorateInput.value;
+        const stationId = stationIdInput.value;
 
-                            startUpdatingTable();
-                        })
-                        .catch(error => console.error('Error starting video:', error));
-                } else {
-                    alert("Please upload a video file first.");
-                }
+        fetch(`/download_csv?governorate=${governorate}&stationId=${stationId}`)
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'output.csv';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+
+                // Upload the CSV to MongoDB
+                uploadGeneratedCSV(blob, governorate, stationId);
+            })
+            .catch(error => console.error('Error downloading CSV:', error));
+    }
+
+    function uploadGeneratedCSV(blob, governorate, stationId) {
+        const formData = new FormData();
+        formData.append('file', blob, 'output.csv');
+        formData.append('governorate', governorate);
+        formData.append('stationId', stationId);
+
+        fetch('/upload_csv', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('CSV uploaded successfully to MongoDB!');
+            } else {
+                alert('Error uploading CSV to MongoDB: ' + data.error);
             }
-
-            window.stopVideo = function() {
-                fetch('/stop_processing', { method: 'POST' })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data.message);
-                        const img = document.getElementById('videoFeed');
-                        img.src = "";
-                        clearInterval(updateInterval);
-                    })
-                    .catch(error => console.error('Error stopping video:', error));
-            }
-
-            function startUpdatingTable() {
-                updateInterval = setInterval(() => {
-                    fetch('/get_frame_data')
-                    .then(response => response.json())
-                    .then(data => {
-                        updateTable(data);
-                    })
-                    .catch(error => {
-                        console.error('Error getting frame data:', error);
-                    });
-                }, 1000); // Met à jour toutes les secondes
-            }
-
-            function updateTable(details) {
-                const tableBody = document.getElementById('vehicleDetails');
-                tableBody.innerHTML = '';
-
-                if (!details) return; // Si aucune donnée n'est disponible, ne rien faire
-
-                for (const key in details) {
-                    const detail = details[key];
-                    const row = tableBody.insertRow();
-                    const keys = ['track_id', 'class', 'license_plate_text', 'score LP', "date d'entrée", 'date de sortie', 'wait_time', 'pompes_info'];
-                    for (const k of keys) {
-                        const cell = row.insertCell();
-                        cell.textContent = detail[k];
-                    }
-                }
-            }
-
-            window.downloadCSV = function() {
-                window.location.href = '/download_csv';
-            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error uploading CSV to MongoDB: ' + error.message);
         });
+    }
+});
 
     </script>
 </body>

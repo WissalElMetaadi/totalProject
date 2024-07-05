@@ -1,0 +1,6 @@
+track_id,class,license_plate_text,score LP,date d'entrée,date de sortie,wait_time,pompes_info
+2,Car,188TU8229,0.8921909928321838,2023-12-04 08:03:15,,,Pompe 6
+1,Taxi,,,2023-12-04 08:03:15,,,Pompe 7
+5,Taxi,,,2023-12-04 08:03:15,,,Pompe 4
+3,Car,157TU209,0.6834707515580314,2023-12-04 08:03:15,,,Pompe 5
+9,Worker,,,2023-12-04 08:03:15,,,Pompe 7

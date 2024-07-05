@@ -1,0 +1,5 @@
+track_id,class,license_plate_text,score LP,date d'entrée,date de sortie,wait_time,pompes_info,governorate,station_id,video_id
+2,Car,,,2023-12-04 08:03:15,,,Pompe 6,Tunis,Goulette,66853f61c1ef4228cf42fb6c
+1,Taxi,,,2023-12-04 08:03:15,,,Pompe 7,Tunis,Goulette,66853f61c1ef4228cf42fb6c
+5,Taxi,,,2023-12-04 08:03:15,,,Pompe 4,Tunis,Goulette,66853f61c1ef4228cf42fb6c
+3,Car,157TU8306,0.7616534307599068,2023-12-04 08:03:15,,,Pompe 5,Tunis,Goulette,66853f61c1ef4228cf42fb6c

@@ -59,11 +59,14 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 class User(UserMixin):
-    def __init__(self, user_id, name, worker_type,station_id):
+    def __init__(self, user_id, name, worker_type, station_id=None, governorate_name=None):
         self.id = user_id
         self.name = name
         self.worker_type = worker_type
         self.station_id = station_id
+        self.governorate_name = governorate_name
+
+
 
 
 
@@ -73,10 +76,20 @@ def load_user(user_id):
     try:
         user_data = mongo.db.users.find_one({"_id": ObjectId(user_id)})
         if user_data:
-            return User(user_id=str(user_data['_id']), name=user_data['name'], worker_type=user_data['worker_type'], station_id=user_data['station_id'])
+            governorate_name = user_data.get('governorate_name')
+            print(f"Loaded user governorate_name: {governorate_name}")  # Debugging message
+            return User(
+                user_id=str(user_data['_id']),
+                name=user_data['name'],
+                worker_type=user_data['worker_type'],
+                station_id=str(user_data['station_id']) if user_data.get('station_id') else None,
+                governorate_name=governorate_name
+            )
     except Exception as e:
         logging.error(f"Error loading user: {e}")
     return None
+
+
 
 def load_csv():
     data = {}
@@ -229,6 +242,7 @@ def add_user1():
             'worker_type': user_data['worker_type'],
             'birthdate': user_data['birthdate'],
             'station_id': station['_id'],  # Utiliser l'ObjectId de la station
+            'governorate_name':user_data['governorate_id'],
             'cin': user_data['cin'],
             'password_hash': password_hash,
             'profile_picture': user_data.get('profile_picture', 'default.jpg'),
@@ -588,7 +602,9 @@ def total_zone():
 
 @app.route('/DragAndDrop')
 def DragAndDrop():
-    return render_template('DragAndDrop.html')
+    gouvernorates = list(mongo.db.governorates.find())
+    stations = list(mongo.db.stations.find())
+    return render_template('DragAndDrop.html',governorates=gouvernorates,stations=stations)
 
 @app.route('/modele')
 def modele():
@@ -652,14 +668,27 @@ def login():
         password = request.form['password']
         user_data = mongo.db.users.find_one({"name": username})
 
+        if user_data:
+            print(f"user_data: {user_data}")  # Debugging message to show the entire user document
         if user_data and check_password_hash(user_data['password_hash'], password):
-            user = User(user_id=str(user_data['_id']), name=user_data['name'], worker_type=user_data['worker_type'], station_id=user_data['station_id'])
+            user = User(
+                user_id=str(user_data['_id']),
+                name=user_data['name'],
+                worker_type=user_data['worker_type'],
+                station_id=str(user_data['station_id']) if user_data.get('station_id') else None,
+                governorate_name=user_data.get('governorate_name')  # Ensure this field is correctly retrieved
+            )
+            print(f"Governorate name from user_data: {user_data.get('governorate_name')}")  # Debugging message
             login_user(user)
             session['username'] = username
-            session['user_id'] = str(user_data['_id'])  # Add the user_id to the session
+            session['user_id'] = str(user_data['_id'])
             session['user_role'] = user.worker_type
+            session['station_id'] = user.station_id
 
-            # Redirection basée sur le rôle de l'utilisateur
+            if user.worker_type == 'governorate_admin':
+                session['governorate_name'] = user.governorate_name
+                print(f"Governorate name set for session: {session['governorate_name']}")  # Debugging message
+
             if user.worker_type == 'Simple User':
                 return redirect(url_for('interface_user'))
             else:
@@ -668,6 +697,9 @@ def login():
             error_message = 'Nom d\'utilisateur ou mot de passe incorrect.'
 
     return render_template('login.html', error_message=error_message)
+
+
+
 
 
 @app.route('/logout')
@@ -682,32 +714,134 @@ def statics():
     
     return render_template(('statics.html'))
 
+from bson import ObjectId
+
+@app.route('/filter_data', methods=['POST'])
+@login_required
+def filter_data():
+    governorate_name = request.json.get('governorate')
+    station_name = request.json.get('station')
+
+    # Log the input data
+    print(f'Received filter request with governorate: {governorate_name}, station: {station_name}')
+
+    # Récupérer l'ID du gouvernorat
+    governorate = mongo.db.governorates.find_one({"name": governorate_name})
+    if not governorate:
+        print(f'No governorate found with name: {governorate_name}')
+        return jsonify({"error": "No governorate found"}), 400
+
+    governorate_id = governorate['_id']
+    print(f'Governorate ID for {governorate_name}: {governorate_id}')
+
+    # Récupérer les stations associées au gouvernorat
+    stations = list(mongo.db.stations.find({"governorate_id": governorate_id}))
+    station_ids_str = [str(station['_id']) for station in stations]  # Convertir ObjectId en chaîne de caractères
+    station_ids_obj = [station['_id'] for station in stations]  # Garder les ObjectId
+    station_map = {str(station['_id']): station['name'] for station in stations}  # Map des IDs de station aux noms
+    print(f'Station IDs for governorate {governorate_name}: {station_ids_str}')
+    print(f'Stations for governorate {governorate_name}: {stations}')
+
+    # Si une station est spécifiée, filtrer par cette station
+    if station_name:
+        station = mongo.db.stations.find_one({"name": station_name})
+        if station and str(station['_id']) in station_ids_str:
+            station_ids_str = [str(station['_id'])]
+            station_ids_obj = [station['_id']]
+        print(f'Filtered station ID for station {station_name}: {station_ids_str}')
+
+    # Récupérer les véhicules associés aux stations filtrées
+    vehicles = list(mongo.db.vehicules.find({
+        "$or": [
+            {"station_id": {"$in": station_ids_str}},
+            {"station_id": {"$in": station_ids_obj}}
+        ]
+    }))
+    #print(f'Vehicles found: {vehicles}')
+
+    
+    # Convertir ObjectId en chaîne de caractères pour la sérialisation JSON et ajouter le nom de la station
+    for item in vehicles:
+        item['_id'] = str(item['_id'])
+        if 'station_id' in item:
+            station_id_str = str(item['station_id'])
+            item['station_id'] = station_id_str
+            item['station_name'] = station_map.get(station_id_str, "Unknown")
+        if 'governorate_id' in item:
+            item['governorate_id'] = str(item['governorate_id'])
+
+    return jsonify(vehicles)
+
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    gouvernorates = list(mongo.db.governorates.find())
-    stations = list(mongo.db.stations.find())
     if current_user.worker_type == 'Simple User':
         return redirect(url_for('interface_user'))
 
     if 'username' not in session:
         return redirect(url_for('login'))
 
+    governorates = list(mongo.db.governorates.find())
+    stations_collection = mongo.db.stations
     vehicles_collection = mongo.db.vehicules
+
     if current_user.worker_type == 'global_admin':
-        data = list(vehicles_collection.find())  # No station_id filter for global_admin
+        data = list(vehicles_collection.find())
+        stations = list(stations_collection.find())
+    elif current_user.worker_type == 'governorate_admin':
+        governorate = mongo.db.governorates.find_one({"name": current_user.governorate_name})
+        if not governorate:
+            print(f"No governorate found with name: {current_user.governorate_name}")
+            return "Error: No governorate found", 400
+
+        governorate_id = governorate['_id']
+        print(f"Governorate ID for {current_user.governorate_name}: {governorate_id}")
+
+        stations = list(stations_collection.find({"governorate_id": governorate_id}))
+        station_ids = [station['_id'] for station in stations]
+        print(f"Station IDs for governorate {current_user.governorate_name}: {station_ids}")
+        print(f"Stations for governorate {current_user.governorate_name}: {stations}")
+
+        if not station_ids:
+            print(f"No stations found for governorate {current_user.governorate_name}")
+            return "Error: No stations found", 400
+
+        data = list(vehicles_collection.find({"station_id": {"$in": station_ids}}))
+
+        for item in stations:
+            item['_id'] = str(item['_id'])
+            if 'governorate_id' in item:
+                item['governorate_id'] = str(item['governorate_id'])
     else:
-        data = list(vehicles_collection.find({"station_id": current_user.station_id}))
+        print(f"User station ID: {current_user.station_id}")
+        data = list(vehicles_collection.find({"station_id": ObjectId(current_user.station_id)}))
+        stations = list(stations_collection.find({"_id": ObjectId(current_user.station_id)}))
+
+    # Map station ids to names
+    station_map = {str(station['_id']): station['name'] for station in stations}
+
+    # Convert ObjectId to string for JSON serialization and inject station_name
+    for item in data:
+        item['_id'] = str(item['_id'])
+        if 'station_id' in item:
+            station_id_str = str(item['station_id'])
+            item['station_id'] = station_id_str
+            item['station_name'] = station_map.get(station_id_str, "Unknown")
+        if 'governorate_id' in item:
+            item['governorate_id'] = str(item['governorate_id'])
+
+    for item in governorates:
+        item['_id'] = str(item['_id'])
 
     vehicles_collection1 = mongo.db.sentiment_data
     pipeline = [
         {"$group": {"_id": "$stars", "count": {"$sum": 1}}}
     ]
     result = list(vehicles_collection1.aggregate(pipeline))
-    sentiment_counts = {doc["_id"]: doc["count"] for doc in result}
+    sentiment_counts = {str(doc["_id"]): doc["count"] for doc in result}
 
-    return render_template('dashboard.html', data=data, sentiment_counts=sentiment_counts,governorates=gouvernorates, stations=stations)
-
+    return render_template('dashboard.html', data=data, sentiment_counts=sentiment_counts, governorates=governorates, stations=stations)
 
 
 
@@ -1010,11 +1144,12 @@ def generate_frames():
     cap.release()
 @app.route('/download_csv', methods=['GET'])
 def download_csv():
+    
+
     if os.path.exists(csv_file_path):
         return send_file(csv_file_path, as_attachment=True, download_name='output.csv')
     else:
         return jsonify({'error': 'CSV file not found'}), 404
-
 @app.route('/get_frame_data', methods=['GET'])
 def get_frame_data():
     global current_frame_data
@@ -1042,8 +1177,50 @@ def upload_file():
     else:
         return jsonify({'error': 'Aucun fichier envoyé'}), 400
 
+@app.route('/upload_csv', methods=['POST'])
+def upload_csv():
+    if 'file' not in request.files:
+        return jsonify(success=False, error="No file part"), 400
 
+    file = request.files['file']
+    governorate = request.form.get('governorate')
+    station_id = request.form.get('stationId')
+    video_name = request.form.get('videoName')
+    
+    if file.filename == '':
+        return jsonify(success=False, error="No selected file"), 400
 
+    try:
+        # Ajouter la vidéo à la collection `videos`
+        video_doc = {
+            'video_name': video_name,
+            'governorate': governorate,
+            'station_id': station_id
+        }
+        video_id = mongo.db.videos.insert_one(video_doc).inserted_id
+
+        # Lire le fichier CSV dans un DataFrame pandas
+        stream = io.StringIO(file.stream.read().decode("ISO-8859-1"), newline=None)
+        df = pd.read_csv(stream, encoding="ISO-8859-1")
+        
+        # Ajouter les colonnes governorate, stationId, et videoId aux données
+        df['governorate'] = governorate
+        df['station_id'] = station_id
+        df['video_id'] = str(video_id)
+        
+        # Convertir le DataFrame en dictionnaire de documents
+        data = df.to_dict(orient='records')
+
+        # Insérer les données dans la collection `vehicle_data`
+        mongo.db.promotions.insert_many(data)
+
+        # Enregistrer le DataFrame mis à jour en tant que fichier CSV
+        updated_csv_path = 'output.csv'
+        df.to_csv(updated_csv_path, index=False)
+
+        return jsonify(success=True, csv_path=updated_csv_path)
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 500
 
 
 
@@ -1531,6 +1708,10 @@ def get_analysis_by_zone():
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': 'An error occurred', 'message': str(e)}), 500
+
+
+
+
 
 
 if __name__ == '__main__':

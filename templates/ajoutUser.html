@@ -8,6 +8,57 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     
     <style>
+
+
+.custom-modal-width {
+    max-width: 700px; /* Ajustez la largeur selon vos besoins */
+    margin: 30px auto; /* Centrer le modal horizontalement */
+}
+
+.custom-header {
+    background-color: #007bff;
+    color: #fff;
+    border-top-left-radius: 0.3rem;
+    border-top-right-radius: 0.3rem;
+}
+
+.custom-row {
+    display: flex;
+}
+
+.custom-left-column,
+.custom-right-column {
+    padding: 15px;
+}
+
+.custom-left-column {
+    border-right: 1px solid #dee2e6;
+}
+
+.custom-right-column {
+    padding-left: 15px;
+}
+
+.form-group label {
+    font-weight: bold;
+}
+
+.form-control {
+    border-radius: 0.2rem;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    border-radius: 0.2rem;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+        
               body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -434,7 +485,10 @@
                             <th onclick="sortTableDynamic('users', 3)">Gender <i class="fas fa-sort"></i></th>
                             <th onclick="sortTableDynamic('users', 4)">Worker Type <i class="fas fa-sort"></i></th>
                             <th onclick="sortTableDynamic('users', 5)">Birthdate <i class="fas fa-sort"></i></th>
+                            
                             <th class="station-column" onclick="sortTableDynamic('users', 6)">Station <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTableDynamic('users', 7)">Governorate <i class="fas fa-sort"></i></th>
+
                             <th>CIN</th>
                             <th>Action</th>
                         </tr>
@@ -494,68 +548,80 @@
 
     <!-- Modal pour user -->
 <!-- Modal pour user -->
+<!-- Modal -->
 <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog custom-modal-width" role="document">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header custom-header">
                 <h5 class="modal-title" id="addUserModalLabel">Ajouter Utilisateur</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 <form id="addUserForm" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="name">Nom</label>
-                        <input type="text" class="form-control" id="name" name="name" placeholder="Nom" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="gender">Genre</label>
-                        <select class="form-control custom-select" id="gender" name="gender" required>
-                            <option value="" disabled selected>Choisir Genre</option>
-                            <option value="female">Femme</option>
-                            <option value="male">Homme</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="worker_type">Type de Travailleur</label>
-                        <select class="form-control" id="worker_type" name="worker_type" required>
-                            <option value="" disabled selected>Choisir Type de Travailleur</option>
-                            <option value="global_admin">Administrateur Global</option>
-                            <option value="governorate_admin">Administrateur Gouvernorat</option>
-                            <option value="station_admin">Administrateur Station</option>
-                            <option value="Analyste de Données">Analyste de Données</option>
-                            <option value="Simple User">Utilisateur Simple</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="birthdate">Date de Naissance</label>
-                        <input type="date" class="form-control" id="birthdate" name="birthdate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="station_id">Nom de la Station</label>
-                        <select class="form-control" id="station_id" name="station_id" required>
-                            <option value="" disabled selected>Select gov</option>
-                            {% for station in stations %}
-                            <option value="{{ station.name }}">{{ station.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="cin">CIN</label>
-                        <input type="text" class="form-control" id="cin" name="cin" placeholder="CIN" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Mot de Passe</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Mot de Passe" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile_picture">Photo de Profil</label>
-                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*" required>
+                    <div class="row custom-row">
+                        <div class="col-md-6 custom-left-column">
+                            <div class="form-group">
+                                <label for="name">Nom</label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Nom" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="gender">Genre</label>
+                                <select class="form-control custom-select" id="gender" name="gender" required>
+                                    <option value="" disabled selected>Choisir Genre</option>
+                                    <option value="female">Femme</option>
+                                    <option value="male">Homme</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="worker_type">Type de Travailleur</label>
+                                <select class="form-control" id="worker_type" name="worker_type" required>
+                                    <option value="" disabled selected>Choisir Type de Travailleur</option>
+                                    <option value="global_admin">Administrateur Global</option>
+                                    <option value="governorate_admin">Administrateur Gouvernorat</option>
+                                    <option value="station_admin">Administrateur Station</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 custom-right-column">
+                            <div class="form-group">
+                                <label for="birthdate">Date de Naissance</label>
+                                <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="station_id">Nom de la Station</label>
+                                <select class="form-control" id="station_id" name="station_id" required>
+                                    <option value="" disabled selected>Select gov</option>
+                                    {% for station in stations %}
+                                    <option value="{{ station.name }}">{{ station.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="governorate_id">Gouvernorat</label>
+
+                                <select class="form-control" id="governorate_id" name="stationgovernorate_id" required>
+                                    <option value="" disabled selected>Select gov</option>
+                                    {% for gov in governorates %}
+                                    <option value="{{ gov.name }}">{{ gov.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cin">CIN</label>
+                                <input type="text" class="form-control" id="cin" name="cin" placeholder="CIN" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Mot de Passe</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Mot de Passe" required>
+                            </div>
+                            
+                        </div>
                     </div>
                     <button type="button" class="btn btn-primary" id="addUserButton">Ajouter Utilisateur</button>
                 </form>
@@ -775,8 +841,7 @@
                             <option value="global_admin">Administrateur Global</option>
                             <option value="governorate_admin">Administrateur Gouvernorat</option>
                             <option value="station_admin">Administrateur Station</option>
-                            <option value="Analyste de Données">Analyste de Données</option>
-                            <option value="Simple User">Utilisateur Simple</option>
+                            
                         </select>
                     </div>
                     <div class="form-group">
@@ -789,6 +854,16 @@
                             <option value="" disabled selected>Select station</option>
                             {% for station in stations %}
                                 <option value="{{ station.name }}">{{ station.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editUserGovernorate">Gouvernorat</label>
+                        <select class="form-control" id="editUserGovernorate" required>
+                            <option value="" disabled selected>Select governorate</option>
+                            {% for governorate in governorates %}
+                                <option value="{{ governorate.id }}">{{ governorate.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -819,6 +894,8 @@
                     worker_type: $('#worker_type').val(),
                     birthdate: $('#birthdate').val(),
                     station_name: $('#station_id').val(),
+                    governorate_id: $('#governorate_id').val(),
+
                     cin: $('#cin').val(),
                     password: $('#password').val(),
                     profile_picture: $('#profile_picture').val()
@@ -898,6 +975,8 @@
                             <td>${user.worker_type}</td>
                             <td>${user.birthdate}</td>
                             <td class="station-column">${stationName}</td>  <!-- Use station name -->
+                            <td>${user.governorate_id}</td>
+
                             <td>${user.cin}</td>
                             <td class="actions-dynamic">
                                 <button class="edit-btn-dynamic" onclick="openEditUserModal(${index})"><i class="fas fa-edit"></i></button>
@@ -952,10 +1031,12 @@
             const workerType = $("#addWorkerTypeDynamic").val();
             const birthdate = $("#addBirthdateDynamic").val();
             const station = $("#addStationDynamic").val();
+            const governorate = $("#addGovernorateDynamic").val();
+
             const cin = $("#addCINDynamic").val();
             const profilePictureFile = $("#addProfilePictureDynamic").prop('files')[0];
     
-            if (id && name && email && gender && workerType && birthdate && station  && cin && profilePictureFile) {
+            if (id && name && email && gender && workerType && birthdate && station && governorate && cin && profilePictureFile) {
                 const formData = new FormData();
                 formData.append('file', profilePictureFile);
     
@@ -1103,6 +1184,8 @@ window.deleteRowDynamic = (userId, index, type) => {
                             <td>${item.worker_type}</td>
                             <td>${item.birthdate}</td>
                             <td class="station-column">${item.station_id}</td>
+                            <td>${item.governorate_id}</td>
+
                             <td>${item.cin}</td>
                             <td class="actions-dynamic">
                                 <button class="edit-btn-dynamic" onclick="openEditUserModal(${index})"><i class="fas fa-edit"></i></button>

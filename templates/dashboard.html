@@ -212,20 +212,19 @@
                     <div class="dropdown-container">
                         <div class="dropdown-group">
                             <label for="governorate">GOUVERNORAT</label>
-                                <select id="governorate" name="governorate" onchange="updateTitle()">
-                                    {% for governorate in governorates %}
+                            <select id="governorate" name="governorate" onchange="updateTitleAndFilterData()">
+                                {% for governorate in governorates %}
                                 <option value="{{ governorate.name }}">{{ governorate.name }}</option>
-                                 {% endfor %}
-                                    <!-- Ajoutez d'autres options ici -->
-                                </select>
-                            </div>
-                            <div class="dropdown-group">
-                                <label for="station-id">ID STATION</label>
-                                <select id="station-id" name="station-id" onchange="updateTitle()">
-                                    {% for station in stations %}
-                            <option value="{{ station.name }}">{{ station.name }}</option>
-                            {% endfor %}
-                                </select>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="dropdown-group">
+                            <label for="station-id">ID STATION</label>
+                            <select id="station-id" name="station-id" onchange="updateTitleAndFilterData()">
+                                {% for station in stations %}
+                                <option value="{{ station.name }}">{{ station.name }}</option>
+                                {% endfor %}
+                            </select>
                                 <div class="dropdown-group">
                                     <a href="{{ url_for('add_promotion') }}" class="add-promotion-btn">Ajouter une promotion</a>
                                     <!-- Autres contenus du dashboard -->
@@ -451,43 +450,41 @@
                                 <th>track_id</th>
                                 <th>class</th>
                                 <th>license_plate_text</th>
-                                <th>score LP</th>
+                                <th>score</th>
                                 <th>pompes_info</th>
                                 <th>date d'entrée</th>
                                 <th>date de sortie</th>
                                 <th>wait_time</th>
-                                <th>station_id</th>
-
+                                <th>station_name</th>
                                 <th>Image du véhicule</th>
-                                <th>Image de la plaque</th>
+                                <th>Image de la plaque</th>     
                                 <th>TotalZone</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="vehicle-data">
                             {% for row in data %}
                             <tr>
                                 <td><a href="#" class="track-info" data-track-id="{{ row['track_id'] }}">{{ row['track_id'] }}</a></td>
                                 <td>{{ row['class'] }}</td>
                                 <td>{{ row['license_plate_text'] }}</td>
-                                <td>{{ row['score LP'] }}</td>
+                                <td>{{ row['score'] }}</td>
                                 <td>{{ row['pompes_info'] }}</td>
                                 <td>{{ row['date d\'entrée'] }}</td>
                                 <td>{{ row['date de sortie'] }}</td>
                                 <td>{{ row['wait_time'] }}</td>
-                                <td>{{ row['station_id'] }}</td>
-
+                                <td>{{ row['station_name'] }}</td>
                                 <td>
                                     {% if row['Car Image'] %}
-                                        <a href="#" onclick="openImageWindow('{{ url_for('static', filename=row['Car Image']) }}');">Voir Image du véhicule</a>
+                                    <a href="#" onclick="openImageWindow('{{ url_for('static', filename=row['Car Image']) }}');">Voir Image du véhicule</a>
                                     {% else %}
-                                        Pas d'image
+                                    Pas d'image
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if row['License Plate Image'] %}
-                                        <a href="#" onclick="openImageWindow('{{ url_for('static', filename=row['License Plate Image']) }}');">Voir Image de la plaque</a>
+                                    <a href="#" onclick="openImageWindow('{{ url_for('static', filename=row['License Plate Image']) }}');">Voir Image de la plaque</a>
                                     {% else %}
-                                        Pas d'image
+                                    Pas d'image
                                     {% endif %}
                                 </td>
                                 <td>{{ row['ZoneTotal'] }}</td>
@@ -495,9 +492,8 @@
                             {% endfor %}
                         </tbody>
                     </table>
-
-                   
                 </div>
+                
 
                 <div id="detailsModal" class="modal">
                     <div class="modal-content">
@@ -529,6 +525,28 @@
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  var ctx = document.getElementById('chartCanvas').getContext('2d');
         var myChart = new Chart(ctx, {
             type: 'line',
